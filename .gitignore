@@ -1,0 +1,7 @@
+.vscode
+**/*.js
+**/*.js.map
+**/node_modules
+**/*.css
+**/*/css.map
+**/*.log
