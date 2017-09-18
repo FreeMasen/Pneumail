@@ -5,3 +5,4 @@
 **/*.css
 **/*/css.map
 **/*.log
+**/.DS_Store
