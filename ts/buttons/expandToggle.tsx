@@ -1,13 +1,28 @@
 import * as React from 'react';
+interface ExpandToggleState {
+    supplimentalClass: string;
+}
 
-export default class ExpandToggle extends React.Component<any,any> {
+interface ExpandToggleProps {
+    style?: React.CSSProperties;
+    iconColor?: string;
+    onClick: () => void;
+}
+export default class ExpandToggle extends React.Component<ExpandToggleProps, ExpandToggleState> {
+    constructor(props) {
+        super(props);
+        this.state = {
+            supplimentalClass: ''
+        };
+    }
+
     render() {
         return (
             <div 
-                className="expand-toggle-container"
+                className={`expand-toggle-container`}
                 style={this.props.style}
+                onClick={this.props.onClick}
             >
-                
                 <svg
                     className="expand-toggle"
                     width="100"
@@ -28,5 +43,14 @@ export default class ExpandToggle extends React.Component<any,any> {
                 </svg>
             </div>
         );
+    }
+
+    private toggleClass() {
+        this.setState((prev, props) => {
+            if (prev.supplimentalClass == ' reversed') {
+                return {supplimentalClass: ' restored'}
+            }
+            return {supplimentalClass: ' restored'}
+        });
     }
 }

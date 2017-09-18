@@ -1,0 +1,24 @@
+.side-bar {
+    width: 250px;
+}
+.side-bar-title-container {
+    display: flex;
+    flex-flow: row;
+    justify-content: center;
+    align-items: center;
+    height: 50px;
+    border-bottom: 3px solid whitesmoke;
+    padding-bottom: 10px;
+    .side-bar-title {
+        font-size: 20pt;
+        font-weight: bold;
+        display: block;
+        margin-right: 10px;
+    }
+    .toggle-container {
+        justify-content: flex-end;
+        display: block;
+        height: 45px;
+        width: 45px;
+    }
+}
