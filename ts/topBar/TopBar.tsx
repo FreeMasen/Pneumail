@@ -9,7 +9,7 @@ interface ITopBarProps {
 export default class TopBar extends React.Component<ITopBarProps, any> {
     render() {
         return (
-            <div className="top-bar">
+            <div className="top-bar paper">
                 <span>
                     {this.props.bannerText}
                 </span>
