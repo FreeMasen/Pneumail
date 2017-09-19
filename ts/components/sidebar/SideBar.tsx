@@ -1,7 +1,7 @@
 import * as React from 'react';
 import ExpandToggle from '../buttons/expandToggle';
 import SideBarItem from './SideBarItem';
-import {SideBarOption} from '../models/option'
+import {SideBarOption} from '../../models/option'
 
 interface ISideBarState {
     expanded: boolean;
