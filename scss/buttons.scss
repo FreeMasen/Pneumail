@@ -1,15 +1,14 @@
 @import 'colors';
 .expand-toggle-container {
-    border-radius: 50%;
-    background-color: $accent;
-    box-shadow: 1px 1px 1px 1px rgba(0,0,0,0.25);
-  }
-  
-  .expand-toggle-container:hover {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background-color: $accent;
+  box-shadow: 1px 1px 1px 1px rgba(0,0,0,0.25);
+  :hover {
     filter: opacity(0.9);
   }
-  
-  .expand-toggle-container:active {
+  :active {
     transform: translate(1px, 1px);
     box-shadow: 0 0 0 0;
   }
@@ -17,39 +16,34 @@
     width: 100%;
     height: 100%;
   }
-  .expand-toggle.reversed {
+  .expand-toggle.restored {
     animation: reverse-spin 0.2s linear;
   }
-  .expand-toggle.rotated {
+  .expand-toggle.reversed {
     animation: spin 0.2s linear;
     transform: rotate(180deg);
   }
-  .expand-toggle-shadow {
-    position: absolute;
-    top: 0;
-    left: 0;
-    display: none;
-  }
+}
 
-  .sidebar-icon{
-    width: 25px;
-    height: 25px;
+.sidebar-icon{
+  width: 25px;
+  height: 25px;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0);
   }
-  
-  @keyframes spin {
-    from {
-      transform: rotate(0);
-    }
-    to { 
-      transform: rotate(180deg);
-    }
+  to {
+    transform: rotate(180deg);
   }
-  
-  @keyframes reverse-spin {
-    from {
-      transform: rotate(180deg);
-    }
-    to {
-      transform: rotate(0);
-    }
+}
+
+@keyframes reverse-spin {
+  from {
+    transform: rotate(180deg);
   }
+  to {
+    transform: rotate(0);
+  }
+}

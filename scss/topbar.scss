@@ -9,8 +9,10 @@
     color: #fff;
     padding-left: 10px;
     box-sizing: border-box;
-}
-
-.top-bar > span {
-    font-size: 24pt;
+    span {
+        font-size: 24pt;
+    }
+    .search {
+        margin-right: 15px;
+    }
 }
