@@ -2,32 +2,29 @@ import * as React from 'react';
 import ExpandToggle from '../buttons/expandToggle';
 import SideBarItem from './SideBarItem';
 import {SideBarOption} from '../../models/option'
+import {SideBarState} from '../../enums';
 
 interface ISideBarState {
-    expanded: boolean;
 }
 
 interface ISideBarProps {
-    expanded: boolean;
+    width: SideBarState;
     title: string;
     toggle?: JSX.Element;
     options: Array<SideBarOption>;
     //Dispatch
+    toggleWidth: () => void;
 }
 
 export default class SideBar extends React.Component<ISideBarProps, ISideBarState> {
+
     private defaultToggle = <ExpandToggle
-                                onClick={this.toggle}
+                                onClick={() => this.props.toggleWidth()}
                             />
-    constructor(props: ISideBarProps) {
-        super(props);
-        this.state = {
-            expanded: props.expanded
-        };
-    }
     render() {
+
         return (
-            <div className="side-bar paper">
+            <div className={`side-bar paper ${this.props.width == SideBarState.Open ? 'open' : 'closed'}`}>
                 <div className="side-bar-title-container">
                     <span className="side-bar-title">
                         {this.props.title}
@@ -42,12 +39,13 @@ export default class SideBar extends React.Component<ISideBarProps, ISideBarStat
                         content={option.text}
                         href={option.value}
                         icon={option.icon}
+                        width={this.props.width}
                     />)}
             </div>
         );
     }
 
     toggle() {
-
+        this.props.toggleWidth()
     }
 }

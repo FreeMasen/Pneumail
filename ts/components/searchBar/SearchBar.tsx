@@ -19,7 +19,7 @@ export default class SearchBar extends React.Component<ISearchBarProps, ISearchB
     }
     render(): JSX.Element {
         return (
-            <div className="search-bar">
+            <div className="search-bar paper">
                 <input
                     type="text"
                     onChange={this.change}
