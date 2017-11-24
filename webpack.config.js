@@ -5,10 +5,11 @@ module.exports = function(env) {
     extractSass = new ExtractTextPlugin(path.join(__dirname, 'css', '[name].css'));
     config = {
         entry: {
-            app: path.join(__dirname, 'ts', 'app.tsx')
+            app: path.join(__dirname, 'ts', 'app.tsx'),
+            worker: path.join(__dirname, 'ts', 'services', 'worker.ts')
         },
         output: {
-            path: path.join(__dirname, 'js'),
+            path: path.join(__dirname, 'wwwroot', 'js'),
             filename: '[name].js',
             sourceMapFilename: '[name].js.map'
         },
@@ -21,15 +22,6 @@ module.exports = function(env) {
                     test: /.tsx?$/,
                     exclude: ['node_modules'],
                     use: ['awesome-typescript-loader']
-                },
-                {
-                    test: /\.scss$/,
-                    use:
-                        [
-                            {loader: "style-loader"},
-                            {loader: "css-loader"},
-                            {loader: "sass-loader"}
-                        ]
                 }
             ]
         }

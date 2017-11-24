@@ -1,8 +1,10 @@
 .vscode
-js/*.js
+wwwroot/js/*.js
 **/*.js.map
 **/node_modules
-**/*.css
+wwwroot/**/*.css
 **/*/css.map
 **/*.log
 **/.DS_Store
+bin/
+obj/

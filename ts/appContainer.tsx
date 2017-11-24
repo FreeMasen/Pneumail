@@ -6,6 +6,8 @@ import Icons from './components/icons/Icons';
 import {BrowserRouter, Route, Link} from 'react-router-dom';
 import SearchBar from './components/searchBar/SearchBar';
 import {SideBarState} from './enums';
+import DataService from './services/dataService';
+
 interface IAppState {
     searchValue: string;
     sideBarState: SideBarState;
@@ -15,7 +17,9 @@ interface IAppDispatch {
 }
 
 export default class AppContainer extends React.Component<any, IAppState> {
+    db = new DataService(`ws://${location.host}/WebSocket/Sock`, 'pneumail')
     constructor(props) {
+
         super(props);
         this.state = {
             searchValue: '',

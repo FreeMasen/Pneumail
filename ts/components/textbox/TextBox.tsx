@@ -66,8 +66,6 @@ export default class TextBox extends React.Component<ITextBoxProps, ITextBoxStat
     }
 
     updateValue(value: string) {
-        Logger.Debug('TextBox', 'updateValue', value);
-
         this.setState((prev, props) => {
             return {
                 value: value
@@ -76,13 +74,11 @@ export default class TextBox extends React.Component<ITextBoxProps, ITextBoxStat
     }
 
     updateParent(): void {
-        Logger.Debug('TextBox', 'updateParent', this.state)
         this.waiting = false;
         this.props.onChange(this.state.value)
     }
 
     updateTimer(event): void {
-        Logger.Debug('TextBox', 'updateTimer', this.waiting);
         let value = (event.currentTarget as HTMLInputElement).value;
         this.updateValue(value);
         if (!this.waiting) {

@@ -47,7 +47,6 @@ export default class ExpandToggle extends React.Component<IExpandToggleProps, IE
     }
 
     private toggleClass() {
-        Logger.Debug('ExpandToggle', 'toggleClass', this.state.supplimentalClass);
         this.setState((prev: IExpandToggleState, props) => {
             return {
                 supplimentalClass: prev.supplimentalClass == 'restored' ? 'reversed' : 'restored'
