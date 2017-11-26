@@ -8,3 +8,5 @@ wwwroot/**/*.css
 **/.DS_Store
 bin/
 obj/
+appsettings.json
+appsettings.Development.json

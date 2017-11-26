@@ -1,0 +1,28 @@
+@model RegisterViewModel
+<link rel="stylesheet" type="text/css" href="css/register.css" />
+<div class="top-bar paper">
+    <span>Pneumail</span>
+</div>
+<div class="registration-container">
+    <h2 class="registration-header">Register</h2>
+    <form method="POST" action="/Account/Register" class="registration-form">
+        <div class="input-group">
+            <label class="input-label" for="username-input">Username</label>
+            <input id="username-input" asp-for="@Model.Username" />
+        </div>
+        <div class="input-group">
+            <label class="input-label" for="password-input">Password</label>
+            <input type="password" id="password-input" asp-for="@Model.Password" />
+        </div>
+        <div class="input-group">
+            <label class="input-label" for="confirm-input">Confirm Password</label>
+            <input type="password" id="confirm-input" asp-for="@Model.Confirm" />
+        </div>
+        <div class="button-group">
+            <button type="reset" class="form-button cancel paper">Cancel</button>
+            <button type="submit" class="form-button submit paper">Submit</button>
+        </div>
+        <div class="error-messages" asp-validation-summary="All">
+        </div>
+    </form>
+</div>

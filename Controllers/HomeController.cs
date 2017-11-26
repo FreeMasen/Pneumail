@@ -8,9 +8,12 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Pneumail.Controllers
 {
+    /// <summary>
+    /// The controller for serving the ReactJS application
+    /// </summary>
     public class HomeController : Controller
     {
-        [AllowAnonymous]
+        [Authorize]
         public IActionResult Index()
         {
             return View();

@@ -1,4 +1,17 @@
 @import 'colors';
+
+.form-button {
+  display: block;
+  padding: 15px 25px;
+  border: none;
+  &.submit {
+    background: $accent-content;
+  }
+  &.cancel {
+    background: $accent;
+  }
+}
+
 .expand-toggle-container {
   width: 25px;
   height: 25px;

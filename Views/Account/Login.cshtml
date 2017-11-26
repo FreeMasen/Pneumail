@@ -1,0 +1,28 @@
+@model LoginViewModel
+<link rel="stylesheet" type="text/css" href="css/login.css" />
+<div class="top-bar paper">
+    <span>Pneumail</span>
+</div>
+<div class="login-container">
+    <h2 class="login-header">Login</h2>
+    <form method="POST" asp-action="Login" asp-controller="Account" class="login-form">
+        <div class="input-group">
+            <label class="input-label" for="username-input">Username</label>
+            <input id="username-input" asp-for="@Model.Username" />
+        </div>
+        <div class="input-group">
+            <label class="input-label" for="password-input">Password</label>
+            <input type="password" id="password-input" asp-for="@Model.Password" />
+        </div>
+        <div class="button-group">
+            <button type="reset" class="form-button cancel paper">Cancel</button>
+            <button type="submit" class="form-button submit paper">Submit</button>
+        </div>
+        <div class="error-messages" asp-validation-summary="All">
+        </div>
+    </form>
+    <div class="registration-link">
+        <span>Need an account?</span>
+        <a href="Account/Register">Register here.</a>
+    </div>
+</div>
