@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Pneumail.Data;
 using Pneumail.Models;
 
 namespace Pneumail.Controllers
@@ -22,13 +23,16 @@ namespace Pneumail.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
+        private readonly ApplicationDbContext _data;
 
         public AccountController(
             UserManager<User> userManager,
-            SignInManager<User> signInManager)
+            SignInManager<User> signInManager,
+            ApplicationDbContext data)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _data = data;
         }
 
         [HttpGet]
@@ -87,7 +91,8 @@ namespace Pneumail.Controllers
         /// <returns>The Http response to the POST request</returns>
         [HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> Register(RegisterViewModel model) {
+        public async Task<IActionResult> Register(RegisterViewModel model)
+        {
             if (ModelState.IsValid)
             {
                 var user = new User() {
@@ -105,6 +110,48 @@ namespace Pneumail.Controllers
                 }
             }
             return View(model);
+        }
+
+        public async Task<IActionResult> Seed()
+        {
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+
+            var incomplete = new Category() {
+                Name = "Incomplete",
+                Messages = new List<Message>(),
+            };
+            user.Categories = new List<Category>();
+            for (var i = 0; i < 10; i++)
+            {
+                incomplete.Messages.Add(new Message(){
+                    Sender = new EmailAddress() {
+                        Username = "sender",
+                        Host = "mail",
+                        Domain = "com"
+                    },
+                    Recipients = new List<EmailAddress>() {
+                        new EmailAddress() {
+                            Username = "recipient",
+                            Host = "mail",
+                            Domain = "com"
+                        }
+                    },
+                    Subject = $"{i}: The quick brown fox jumpped over the lazy dog",
+                    Content = @"Sed ut perspiciatis, unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam eaque ipsa, quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt, explicabo. Nemo enim ipsam voluptatem, quia voluptas sit, aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos, qui ratione voluptatem sequi nesciunt, neque porro quisquam est, qui dolorem ipsum, quia dolor sit amet consectetur adipisci[ng] velit, sed quia non numquam [do] eius modi tempora inci[di]dunt, ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit, qui in ea voluptate velit esse, quam nihil molestiae consequatur, vel illum, qui dolorem eum fugiat, quo voluptas nulla pariatur?
+
+                                At vero eos et accusamus et iusto odio dignissimos ducimus, qui blanditiis praesentium voluptatum deleniti atque corrupti, quos dolores et quas molestias excepturi sint, obcaecati cupiditate non provident, similique sunt in culpa, qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio, cumque nihil impedit, quo minus id, quod maxime placeat, facere possimus, omnis voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet, ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat…",
+                    Attachments = new List<Attachment>(),
+                    BlindCopied = new List<EmailAddress>(),
+                    Copied = new List<EmailAddress>()
+                });
+            }
+            user.Categories.Add(incomplete);
+            user.Services = new List<EmailService>();
+
+            await _userManager.UpdateAsync(user);
+            // _data.Update(user);
+            // await _data.SaveChangesAsync();
+            return RedirectToAction("Index", "Home");
         }
     }
 }

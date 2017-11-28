@@ -8,5 +8,9 @@
             "dom",
             "es2015"
         ]
-    }
+    },
+    "files": [
+        "./ts/app.tsx",
+        "./ts/services/worker.ts"
+    ]
 }
