@@ -25,7 +25,6 @@ export class DBWorker {
         this.sock.addEventListener('close', ev => this.close(ev));
         this.sock.addEventListener('message', ev => this.receive(ev));
         this.sock.addEventListener('error', ev => this.error(ev));
-        setInterval(() => this.send('ping'), 1000);
     }
 
     send(msg) {
@@ -36,7 +35,11 @@ export class DBWorker {
         console.log('worker->socket->receive', JSON.stringify(event.data));
         try {
             let parsed = JSON.parse(event.data);
-            this.send(JSON.stringify(parsed));
+            console.log('parsed new update', parsed);
+            postMessage({
+                event: DBWorkerState.NewMessage,
+                update: parsed
+            });
         } catch (e) {
             console.error('error in receive', e);
         }

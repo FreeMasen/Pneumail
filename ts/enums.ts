@@ -12,4 +12,5 @@ export enum DBWorkerState {
     Ready = 'ready',
     NotReady = 'not-ready',
     Error = 'error',
+    NewMessage = 'new-message',
 }

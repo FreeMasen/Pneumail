@@ -59,8 +59,8 @@ export default class DataService {
 
     }
 
-    private storeWorkerUpdate(updated: any[]) {
-
+    private storeWorkerUpdate(updated: any) {
+        console.log('storeWorkerUpdate', updated);
     }
 
 

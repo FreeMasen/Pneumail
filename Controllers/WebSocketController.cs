@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebSockets;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using Pneumail.Data;
 using Pneumail.Models;
 
@@ -38,9 +39,9 @@ namespace Pneumail.Controllers
         {
             if (HttpContext.WebSockets.IsWebSocketRequest) {
                 WebSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
-
+                Console.WriteLine("Accepted Websocket");
                 var userId = _userManager.GetUserId(User);
-
+                Console.WriteLine($"Got UserId: {userId}");
                 var user = await _data.Users.Where(u => u.Id == userId)
                                             .Include(u => u.Categories)
                                                 .ThenInclude(c => c.Messages)
@@ -58,11 +59,23 @@ namespace Pneumail.Controllers
                                                 .ThenInclude(c => c.Messages)
                                                     .ThenInclude(m => m.Attachments)
                                             .FirstOrDefaultAsync();
+                Console.WriteLine($"Got User Data");
                 try {
                     var rawBuf = new byte[1024 * 4];
                     var buffer = new ArraySegment<byte>(rawBuf);
+                    var update = new UpdateMessage() {
+                                        Initial = new List<Update>() {
+                                            new Update() {
+                                                Categories = user.Categories,
+                                                KeysModified = new List<string>(),
+                                            },
+                                        }
+                                    };
+                    Console.WriteLine($"Build update");
+                    await SendUpdate(update);
+                    Console.WriteLine($"Sent Update");
                     var result = await WebSocket.ReceiveAsync(buffer, CancellationToken.None);
-                    await SendUpdate(user.Categories);
+                    Console.WriteLine($"Recieved initial message");
                     while (!result.CloseStatus.HasValue)
                     {
                         if (result.Count > 0)
@@ -81,17 +94,26 @@ namespace Pneumail.Controllers
             }
         }
 
-        public async Task SendUpdate(List<Category> updates) {
+        public async Task SendUpdate(UpdateMessage updates) {
             try {
-                var mapped = JsonConvert.SerializeObject(updates);
+                var mapped = JsonConvert.SerializeObject(
+                                                updates,
+                                                Formatting.None,
+                                                new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
+                Console.WriteLine("Parsed update to json");
                 var msg = System.Text.Encoding.ASCII.GetBytes(mapped);
+                Console.WriteLine("Converted to bytes");
                 var bytes = new ArraySegment<byte>(msg, 0, msg.Count());
+                Console.WriteLine("Converted Array Buffer");
                 await WebSocket.SendAsync(bytes,
                                             WebSocketMessageType.Text,
                                             true, CancellationToken.None);
+                Console.WriteLine("Sent");
             }
             catch (Exception e) {
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"Error: {e.Message}");
+                Console.ForegroundColor = ConsoleColor.White;
             }
         }
     }
