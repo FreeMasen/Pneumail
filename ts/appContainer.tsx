@@ -3,14 +3,15 @@ import SideBar from './components/sidebar/SideBar';
 import TopBar from './components/topBar/TopBar';
 import {SideBarOption} from './models/option'
 import Icons from './components/icons/Icons';
-import {BrowserRouter, Route, Link} from 'react-router-dom';
 import SearchBar from './components/searchBar/SearchBar';
 import {SideBarState} from './enums';
 import DataService from './services/dataService';
+import Message from './components/message/message';
 
 interface IAppState {
     searchValue: string;
     sideBarState: SideBarState;
+    categories: any[];
 }
 
 interface IAppDispatch {
@@ -23,8 +24,36 @@ export default class AppContainer extends React.Component<any, IAppState> {
         super(props);
         this.state = {
             searchValue: '',
-            sideBarState: SideBarState.Open
+            sideBarState: SideBarState.Open,
+            categories: [] as any[]
         }
+        this.db.listen(categories => {
+            console.log('listener', categories);
+            this.setState((prev, props) => {
+                return {
+                    categories
+                }
+            });
+        });
+    }
+    componentWillMount() {
+        console.log('appContainer', 'componentWillMount', this.state)
+    }
+    componentDidMount() {
+        console.log('appContainer', 'componentDidMount', this.state)
+    }
+    componentWillReceiveProps(props) {
+        console.log('appContainer', 'componentWillReceiveProps', props)
+    }
+    
+    componentWillUpdate(props) {
+        console.log('appContainer', 'componentWillUpdate', this.state)        
+    }
+    componentDidUpdate() {
+        console.log('appContainer', 'componentDidUpdate', this.state)
+    }
+    componentWillUnmount() {
+        console.log('appContainer', 'componentWillUnmount', this.state)
     }
     render() {
         return (
@@ -43,8 +72,18 @@ export default class AppContainer extends React.Component<any, IAppState> {
                     width={this.state.sideBarState}
                     toggleWidth={() => this.toggleSidebar()}
                 />
-                <div>
-
+                <div style={{width: '50%', margin: '5px auto', display: 'flex', flexFlow: 'column'}}>
+                    {this.state.categories.map(cat => {
+                        return (
+                            <div key={cat.id} style={{width: '100%', display: 'flex', flexFlow: 'column'}}>
+                            <span>{cat.name}</span>
+                            <hr />
+                                {cat.messages.map(msg => {
+                                    return <Message key={msg.id} subject={msg.subject} sender={`${msg.sender.username}@${msg.sender.host}.${msg.sender.domain}`}></Message>
+                                })}
+                            </div>
+                    )
+                    })}
                 </div>
             </div>
         )

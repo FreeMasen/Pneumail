@@ -1,9 +1,7 @@
 import {DBWorkerState} from '../enums';
 let sock;
-console.log('hello from worker');
 
 addEventListener('message', ev => {
-    console.log('message', ev);
     switch (ev.data.event) {
         case 'start':
             startListening(ev.data.uri);
@@ -12,14 +10,12 @@ addEventListener('message', ev => {
 });
 
 function startListening(uri) {
-    console.log('startListening');
     sock = new DBWorker(uri);
 }
 
 export class DBWorker {
     sock: WebSocket;
     constructor(uri: string) {
-        console.log('new DBWorker', uri);
         this.sock = new WebSocket(uri);
         this.sock.addEventListener('open', ev => this.open(ev));
         this.sock.addEventListener('close', ev => this.close(ev));
@@ -32,10 +28,8 @@ export class DBWorker {
     }
 
     receive(event: MessageEvent) {
-        console.log('worker->socket->receive', JSON.stringify(event.data));
         try {
             let parsed = JSON.parse(event.data);
-            console.log('parsed new update', parsed);
             postMessage({
                 event: DBWorkerState.NewMessage,
                 update: parsed
@@ -46,7 +40,7 @@ export class DBWorker {
     }
 
     error(event: Event) {
-        console.log('worker->socket->error', JSON.stringify(event));
+        console.error('worker->socket->error', JSON.stringify(event));
         postMessage({
             event: DBWorkerState.Error,
         })

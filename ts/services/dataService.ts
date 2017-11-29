@@ -1,5 +1,3 @@
-import { Event } from "_debugger";
-
 
 /**
  * Main data service provider. This class
@@ -13,6 +11,7 @@ import { Event } from "_debugger";
 export default class DataService {
     private worker: Worker;
     private db: IDBDatabase;
+    private listeners = [];
      /**
       * Create a new DataService
       * @param {string} connectionURI The websocket URI/Path
@@ -26,8 +25,12 @@ export default class DataService {
             event: 'start',
             uri: this.connectionURI
         });
-        this.worker.addEventListener('message', ev => this.storeWorkerUpdate(ev.data))
+        this.worker.addEventListener('message', ev => this.messageFromWorker(ev.data))
         this.connect();
+    }
+
+    public listen(listener) {
+        this.listeners.push(listener);
     }
 
     private connect() {
@@ -56,11 +59,29 @@ export default class DataService {
         messages.createIndex('sender', 'sender');
         messages.createIndex('subject', 'subject');
         messages.createIndex('content', 'content');
+    }
 
+    private messageFromWorker(msg: any) {
+        switch (msg.event) {
+            case 'new-message':
+                this.storeWorkerUpdate(msg.update)
+            break;
+            case 'ready':
+                console.log('worker ready');
+            break;
+            case 'not-ready':
+                console.log('worker not ready');
+            break;
+        }
     }
 
     private storeWorkerUpdate(updated: any) {
         console.log('storeWorkerUpdate', updated);
+        if (updated.updateType == 1) {
+            for (let listener of this.listeners) {
+                listener(updated.initial[0].categories)
+            }
+        }
     }
 
 
