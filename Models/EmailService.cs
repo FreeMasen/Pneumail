@@ -6,7 +6,7 @@ namespace Pneumail.Models
     /// user has decided to have our client
     /// handle messages to/from
     /// </summary>
-    public class EmailService
+    public class EmailService 
     {
         /// <summary>
         /// The unique id for this service

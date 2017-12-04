@@ -13,6 +13,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Pneumail.Data;
 using Pneumail.Models;
+using Pneumail.Services;
 
 namespace Pneumail.Controllers
 {
@@ -25,6 +26,7 @@ namespace Pneumail.Controllers
         private WebSocket WebSocket;
         private ApplicationDbContext _data;
         private UserManager<User> _userManager;
+        private EmailService emailService;
         public WebSocketController(ApplicationDbContext data,
                                     UserManager<User> userManager)
         {
