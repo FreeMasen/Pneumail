@@ -24,7 +24,7 @@ export default class Messages extends React.Component<IMessagesProps, IMessagesS
                         return (
                             <Message
                                 key={msg.id}
-                                sender={`${msg.sender.username}@${msg.sender.host}.${msg.sender.domain}`}
+                                sender={msg.sender}
                                 subject={msg.subject}
                                 content={msg.content}
                             />

@@ -2,7 +2,7 @@
 wwwroot/js/*.js
 **/*.js.map
 **/node_modules
-wwwroot/**/*.css
+/**/*.css
 **/*/css.map
 **/*.log
 **/.DS_Store

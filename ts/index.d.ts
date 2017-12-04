@@ -1,5 +1,6 @@
 interface Attachment {
     id: string;
+    msgId: string;
     name: string;
     path: string;
 }
@@ -7,25 +8,20 @@ interface Attachment {
 interface Category {
     id: string;
     name: string;
-    messages: Array<Message>
+    messages?: Array<Message>;
 }
 
-interface EmailAddress {
-    id: string;
-    username: string;
-    host: string;
-    domain: string;
-}
 
 interface Message {
     id: string;
-    sender: EmailAddress;
-    recipients: Array<EmailAddress>;
-    copied?: Array<EmailAddress>;
-    blindCopied?: Array<EmailAddress>;
+    catId: string;
+    sender: string;
+    recipients: Array<string>;
+    copied?: Array<string>;
+    blindCopied?: Array<string>;
     subject: string;
     content: string;
-    attachments: Array<Attachment>;
     previousId?: string;
     isReply: boolean;
+    attachments?: Array<Attachment>;
 }

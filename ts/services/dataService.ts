@@ -33,8 +33,10 @@ export default class DataService {
         this.storageService = new StorageService(name);
     }
 
-    public listen(listener) {
+    public async listen(listener)  {
         this.listeners.push(listener);
+        //send the last state we had
+        listener(await this.storageService.getCategories());
     }
 
     private messageFromWorker(msg: any) {
@@ -66,16 +68,4 @@ export default class DataService {
                     })
         }
     }
-
-    private storeWorkerUpdate(updated: any) {
-        console.log('DataService.storeWorkerUpdate', updated);
-        if (updated.updateType == 1) {
-            for (let listener of this.listeners) {
-                listener(updated.initial[0].categories)
-            }
-        }
-    }
-
-
-
 }

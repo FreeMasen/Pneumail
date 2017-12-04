@@ -64,13 +64,9 @@ namespace Pneumail.Controllers
                     var rawBuf = new byte[1024 * 4];
                     var buffer = new ArraySegment<byte>(rawBuf);
                     var update = new UpdateMessage() {
-                                        Initial = new List<Update>() {
-                                            new Update() {
-                                                Categories = user.Categories,
-                                                KeysModified = new List<string>(),
-                                            },
-                                        }
-                                    };
+                                        Categories = user.Categories,
+                                        UpdateType = UpdateType.Initial,
+                                        };
                     Console.WriteLine($"Build update");
                     await SendUpdate(update);
                     Console.WriteLine($"Sent Update");
@@ -96,15 +92,30 @@ namespace Pneumail.Controllers
 
         public async Task SendUpdate(UpdateMessage updates) {
             try {
+                var mappedCategories = updates.Categories.Select(c =>new {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Messages = c.Messages.Select(m => new {
+                        Id = m.Id,
+                        CatId = c.Id,
+                        Sender = m.Sender.ToString(),
+                        Recipients = m.Recipients.Select(r => r.ToString()).ToArray(),
+                        Copied = m.Copied.Select(r => r.ToString()).ToArray(),
+                        BlindCopied = m.BlindCopied.Select(b => b.ToString()).ToArray(),
+                        Subject = m.Subject,
+                        Content = m.Content,
+                        Attachments = m.Attachments.Select(a => new {Id = a.Id, name = a.Name, Path = a.Path, MsgId = m.Id}),
+                    })
+                });
                 var mapped = JsonConvert.SerializeObject(
-                                                updates,
+                                                new {UpdateType = updates.UpdateType, Categories = mappedCategories},
                                                 Formatting.None,
                                                 new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
-                Console.WriteLine("Parsed update to json");
+
                 var msg = System.Text.Encoding.ASCII.GetBytes(mapped);
-                Console.WriteLine("Converted to bytes");
+
                 var bytes = new ArraySegment<byte>(msg, 0, msg.Count());
-                Console.WriteLine("Converted Array Buffer");
+
                 await WebSocket.SendAsync(bytes,
                                             WebSocketMessageType.Text,
                                             true, CancellationToken.None);

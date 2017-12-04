@@ -30,15 +30,13 @@ export class DBWorker {
         this.sock.send(msg);
     }
 
-    receive(event: MessageEvent) {
+    async receive(event: MessageEvent) {
         try {
             let parsed = JSON.parse(event.data);
-            this.db.storeUpdate(parsed).then(results => {
-                console.log('worker', 'db.storeUpdate', results);
-                postMessage({
-                    event: DBWorkerState.NewMessage,
-                    updateType: UpdateType.Initial
-                });
+            await this.db.storeUpdate(parsed);
+            postMessage({
+                event: DBWorkerState.NewMessage,
+                updateType: UpdateType.Initial
             });
         } catch (e) {
             console.error('error in receive', e);
