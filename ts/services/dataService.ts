@@ -1,4 +1,5 @@
-
+import StorageService from './storageService';
+import { UpdateType } from '../enums';
 /**
  * Main data service provider. This class
  * will deal with the result of the webworker's
@@ -10,7 +11,7 @@
  */
 export default class DataService {
     private worker: Worker;
-    private db: IDBDatabase;
+    private storageService: StorageService;
     private listeners = [];
      /**
       * Create a new DataService
@@ -19,52 +20,28 @@ export default class DataService {
       */
     constructor(
         private connectionURI: string,
-        public name: string) {
+        name: string) {
+        console.log('new DataService(', connectionURI, name, ')');
         this.worker = new Worker('/js/worker.js');
         this.worker.postMessage({
             event: 'start',
-            uri: this.connectionURI
+            uri: this.connectionURI,
+            name: name,
         });
-        this.worker.addEventListener('message', ev => this.messageFromWorker(ev.data))
-        this.connect();
+        this.worker.addEventListener('message',
+            ev => this.messageFromWorker(ev.data))
+        this.storageService = new StorageService(name);
     }
 
     public listen(listener) {
         this.listeners.push(listener);
     }
 
-    private connect() {
-        let dbOpenReq = indexedDB.open(this.name);
-        dbOpenReq.addEventListener('success', ev => this.openSuccessCallback(ev));
-        dbOpenReq.addEventListener('error', ev => this.openErrorCB(ev));
-    }
-
-    private openSuccessCallback(event) {
-        let req = event.currentTarget as IDBOpenDBRequest;
-        this.db = req.result;
-    }
-
-    private openErrorCB(event) {
-        let req = event.currentTarget as IDBOpenDBRequest;
-        throw req.error
-    }
-
-    private openUpgradeNeededCB(event) {
-        let req = event.currentTarget as IDBOpenDBRequest;
-        if (!this.db) {
-            this.db = req.result;
-        }
-        let messages = this.db.createObjectStore('messages');
-        messages.createIndex('id', 'id', {unique: true});
-        messages.createIndex('sender', 'sender');
-        messages.createIndex('subject', 'subject');
-        messages.createIndex('content', 'content');
-    }
-
     private messageFromWorker(msg: any) {
+        console.log('DataService.messageFromWorker(', msg, ')');
         switch (msg.event) {
             case 'new-message':
-                this.storeWorkerUpdate(msg.update)
+                this.newMessage(msg.updateType);
             break;
             case 'ready':
                 console.log('worker ready');
@@ -75,14 +52,30 @@ export default class DataService {
         }
     }
 
+    private newMessage(updateType: UpdateType) {
+        console.log('DataService.newMessage(', updateType, ')');
+        switch (updateType) {
+            case UpdateType.Initial:
+                console.log('UpdateType.Initial');
+                this.storageService.getCategories()
+                    .then(categories => {
+                        console.log('storageService.getCategories()', categories);
+                        for (let listener of this.listeners) {
+                            listener(categories);
+                        }
+                    })
+        }
+    }
+
     private storeWorkerUpdate(updated: any) {
-        console.log('storeWorkerUpdate', updated);
+        console.log('DataService.storeWorkerUpdate', updated);
         if (updated.updateType == 1) {
             for (let listener of this.listeners) {
                 listener(updated.initial[0].categories)
             }
         }
     }
+
 
 
 }

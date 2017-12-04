@@ -19,7 +19,7 @@ namespace Pneumail.Models
         /// <summary>
         /// The user's external username for this service
         /// </summary>
-        public string UserName { get; set; }
+        public string Username { get; set; }
         /// <summary>
         /// The user's external password for this service
         /// </summary>

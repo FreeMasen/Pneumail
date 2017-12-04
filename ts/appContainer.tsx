@@ -6,8 +6,7 @@ import Icons from './components/icons/Icons';
 import SearchBar from './components/searchBar/SearchBar';
 import {SideBarState} from './enums';
 import DataService from './services/dataService';
-import Message from './components/message/message';
-
+import Messages from './components/messages/Messages';
 interface IAppState {
     searchValue: string;
     sideBarState: SideBarState;
@@ -28,7 +27,7 @@ export default class AppContainer extends React.Component<any, IAppState> {
             categories: [] as any[]
         }
         this.db.listen(categories => {
-            console.log('listener', categories);
+            console.log('listen', categories);
             this.setState((prev, props) => {
                 return {
                     categories
@@ -37,23 +36,23 @@ export default class AppContainer extends React.Component<any, IAppState> {
         });
     }
     componentWillMount() {
-        console.log('appContainer', 'componentWillMount', this.state)
+        // console.log('appContainer', 'componentWillMount', this.state)
     }
     componentDidMount() {
-        console.log('appContainer', 'componentDidMount', this.state)
+        // console.log('appContainer', 'componentDidMount', this.state)
     }
     componentWillReceiveProps(props) {
-        console.log('appContainer', 'componentWillReceiveProps', props)
+        // console.log('appContainer', 'componentWillReceiveProps', props)
     }
-    
+
     componentWillUpdate(props) {
-        console.log('appContainer', 'componentWillUpdate', this.state)        
+        // console.log('appContainer', 'componentWillUpdate', this.state)
     }
     componentDidUpdate() {
-        console.log('appContainer', 'componentDidUpdate', this.state)
+        // console.log('appContainer', 'componentDidUpdate', this.state)
     }
     componentWillUnmount() {
-        console.log('appContainer', 'componentWillUnmount', this.state)
+        // console.log('appContainer', 'componentWillUnmount', this.state)
     }
     render() {
         return (
@@ -72,19 +71,11 @@ export default class AppContainer extends React.Component<any, IAppState> {
                     width={this.state.sideBarState}
                     toggleWidth={() => this.toggleSidebar()}
                 />
-                <div style={{width: '50%', margin: '5px auto', display: 'flex', flexFlow: 'column'}}>
-                    {this.state.categories.map(cat => {
-                        return (
-                            <div key={cat.id} style={{width: '100%', display: 'flex', flexFlow: 'column'}}>
-                            <span>{cat.name}</span>
-                            <hr />
-                                {cat.messages.map(msg => {
-                                    return <Message key={msg.id} subject={msg.subject} sender={`${msg.sender.username}@${msg.sender.host}.${msg.sender.domain}`}></Message>
-                                })}
-                            </div>
-                    )
-                    })}
-                </div>
+                {this.state.categories.length > 0 ? <Messages
+                    title={this.state.categories[0].name}
+                    messages={this.state.categories[0].messages}
+                    expanded={this.state.sideBarState == SideBarState.Closed}
+                /> : null}
             </div>
         )
     }

@@ -1,26 +1,29 @@
-import {DBWorkerState} from '../enums';
+import {DBWorkerState, UpdateType} from '../enums';
+import StorageService from './storageService';
 let sock;
 
 addEventListener('message', ev => {
     switch (ev.data.event) {
         case 'start':
-            startListening(ev.data.uri);
+            startListening(ev.data.uri, ev.data.name);
         break;
     }
 });
 
-function startListening(uri) {
-    sock = new DBWorker(uri);
+function startListening(uri: string, name: string) {
+    sock = new DBWorker(uri, name);
 }
 
 export class DBWorker {
     sock: WebSocket;
-    constructor(uri: string) {
+    db: StorageService;
+    constructor(uri: string, name: string) {
         this.sock = new WebSocket(uri);
         this.sock.addEventListener('open', ev => this.open(ev));
         this.sock.addEventListener('close', ev => this.close(ev));
         this.sock.addEventListener('message', ev => this.receive(ev));
         this.sock.addEventListener('error', ev => this.error(ev));
+        this.db = new StorageService(name);
     }
 
     send(msg) {
@@ -30,9 +33,12 @@ export class DBWorker {
     receive(event: MessageEvent) {
         try {
             let parsed = JSON.parse(event.data);
-            postMessage({
-                event: DBWorkerState.NewMessage,
-                update: parsed
+            this.db.storeUpdate(parsed).then(results => {
+                console.log('worker', 'db.storeUpdate', results);
+                postMessage({
+                    event: DBWorkerState.NewMessage,
+                    updateType: UpdateType.Initial
+                });
             });
         } catch (e) {
             console.error('error in receive', e);
@@ -40,21 +46,18 @@ export class DBWorker {
     }
 
     error(event: Event) {
-        console.error('worker->socket->error', JSON.stringify(event));
         postMessage({
             event: DBWorkerState.Error,
         })
     }
 
     open(event: Event) {
-        console.log('worker->socket->open', JSON.stringify(event))
         postMessage({
             event: DBWorkerState.Ready
         });
     }
 
     close(event: Event) {
-        console.log('worker->socket->close', JSON.stringify(event));
         postMessage({
             event: DBWorkerState.NotReady
         });

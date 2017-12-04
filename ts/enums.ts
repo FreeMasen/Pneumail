@@ -14,3 +14,11 @@ export enum DBWorkerState {
     Error = 'error',
     NewMessage = 'new-message',
 }
+
+export enum UpdateType {
+    None = 0,
+    Initial = 1,
+    Insert = 2,
+    Delete = 4,
+    Modify = 8
+}
