@@ -10,14 +10,14 @@ export default class Icons {
                     d={`M 5 40
                         l 45 25
                         l -45 25`}
-                    fill="rgba(21,221,221, 0.75)"
+                    fill="#fff"
                 />
                 <path
                     d={`M 95 40
                         l -45 25
                         l 45 25`
                     }
-                    fill="rgba(21,221,221, 0.75)"
+                    fill="#fff"
                 />
                 <path
                     d={`M 5 40
@@ -28,8 +28,8 @@ export default class Icons {
                 <path
                     d={`M 5 90
                         L 95 90`}
-                    stroke="rgba(21,221,221, 0.75)"
-                    strokeWidth={2}
+                    stroke="#fff"
+                    strokeWidth={4}
                 />
             </Icon>
         );

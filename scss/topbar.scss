@@ -14,5 +14,12 @@
     }
     .search {
         margin-right: 15px;
+        display: flex;
+        flex-flow: row;
+        align-items: center;
+        a {
+            margin-left: 15px;
+            
+        }
     }
 }

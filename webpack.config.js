@@ -1,5 +1,6 @@
 const path = require('path');
-
+const ugly = require('webpack').optimize.UglifyJsPlugin;
+const compress = require('compression-webpack-plugin');
 module.exports = function(env) {
     config = {
         entry: {
@@ -25,6 +26,8 @@ module.exports = function(env) {
         }
     };
     config.plugins = [
+        new ugly(),
+        new compress()
     ]
     if (env != 'prod') {
         config.devtool = 'eval-cheap-module-source-map';

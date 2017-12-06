@@ -22,6 +22,7 @@ export default class TopBar extends React.Component<ITopBarProps, ITopBarState> 
             searchText: ''
         };
     }
+    
     render() {
         return (
             <div className="top-bar paper">
@@ -34,6 +35,7 @@ export default class TopBar extends React.Component<ITopBarProps, ITopBarState> 
                         icon={Icons.SearchIcon}
                         iconPosition={IconPosition.Right}
                     />
+                    <a href="/Account/Logout" className="button" >Logout</a>
                 </div>
             </div>
         )

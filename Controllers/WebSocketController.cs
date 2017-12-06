@@ -39,6 +39,7 @@ namespace Pneumail.Controllers
         /// </summary>
         public async Task Sock()
         {
+            new IMAPService();
             if (HttpContext.WebSockets.IsWebSocketRequest) {
                 WebSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
                 Console.WriteLine("Accepted Websocket");
@@ -65,13 +66,11 @@ namespace Pneumail.Controllers
                 try {
                     var rawBuf = new byte[1024 * 4];
                     var buffer = new ArraySegment<byte>(rawBuf);
-                    var update = new UpdateMessage() {
+                    var update = new UpdateMessage {
                                         Categories = user.Categories,
                                         UpdateType = UpdateType.Initial,
                                         };
-                    Console.WriteLine($"Build update");
                     await SendUpdate(update);
-                    Console.WriteLine($"Sent Update");
                     var result = await WebSocket.ReceiveAsync(buffer, CancellationToken.None);
                     Console.WriteLine($"Recieved initial message");
                     while (!result.CloseStatus.HasValue)

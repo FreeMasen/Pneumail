@@ -23,7 +23,7 @@ export default class Message extends React.Component<IMessageProps, IMessageStat
     render() {
         let iconClass = this.state.toggled ? 'icon-container toggled' : 'icon-container'
         return (
-            <div className="message"
+            <div className="message paper"
                 onClick={ev => this.onClick(ev)}
             >
                 <div className="subject-line">

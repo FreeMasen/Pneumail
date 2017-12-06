@@ -59,7 +59,6 @@ namespace Pneumail
                 app.UseExceptionHandler("/Home/Error");
             }
             app.UseStaticFiles();
-
             app.UseAuthentication();
             var webSocketOptions = new WebSocketOptions()
             {

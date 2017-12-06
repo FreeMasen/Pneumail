@@ -111,6 +111,11 @@ namespace Pneumail.Controllers
             }
             return View(model);
         }
+        [HttpGet]
+        public async Task<IActionResult> Logout() {
+            await _signInManager.SignOutAsync();
+            return RedirectToAction(nameof(Login));
+        }
 
         public async Task<IActionResult> Seed()
         {

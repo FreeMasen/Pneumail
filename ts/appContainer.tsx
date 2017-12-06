@@ -61,21 +61,23 @@ export default class AppContainer extends React.Component<any, IAppState> {
                     bannerText="Pneumail"
                     searchTextUpdate={(value) => this.updateSearch(value)}
                 />
-                <SideBar
-                    title="Collections"
-                    options={[
-                        new SideBarOption('Inbox', '/', Icons.InboxIcon),
-                        new SideBarOption('Sent', '/sent', Icons.SentIcon),
-                        new SideBarOption('Trips', '/trips', Icons.TripsIcon)
-                    ]}
-                    width={this.state.sideBarState}
-                    toggleWidth={() => this.toggleSidebar()}
-                />
-                {this.state.categories.length > 0 ? <Messages
-                    title={this.state.categories[0].name}
-                    messages={this.state.categories[0].messages}
-                    expanded={this.state.sideBarState == SideBarState.Closed}
-                /> : null}
+                <div className="main-content">
+                    <SideBar
+                        title="Collections"
+                        options={[
+                            new SideBarOption('Inbox', '/', Icons.InboxIcon),
+                            new SideBarOption('Sent', '/sent', Icons.SentIcon),
+                            new SideBarOption('Trips', '/trips', Icons.TripsIcon)
+                        ]}
+                        width={this.state.sideBarState}
+                        toggleWidth={() => this.toggleSidebar()}
+                    />
+                    {this.state.categories.length > 0 ? <Messages
+                        title={this.state.categories[0].name}
+                        messages={this.state.categories[0].messages}
+                        expanded={this.state.sideBarState == SideBarState.Closed}
+                    /> : null}
+                </div>
             </div>
         )
     }
