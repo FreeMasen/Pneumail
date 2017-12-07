@@ -14,7 +14,7 @@ namespace Pneumail.ViewModels
             _context = context;
         }
 
-        public async Task<IViewComponentResult> InvokeAsync(Guid? id = null) {
+        public IViewComponentResult InvokeAsync(Guid? id = null) {
             if (id == null) {
                 return View(new EmailServiceViewModel());
             }

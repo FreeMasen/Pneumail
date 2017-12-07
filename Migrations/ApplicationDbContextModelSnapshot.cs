@@ -17,7 +17,6 @@ namespace pneumail.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
                 .HasAnnotation("ProductVersion", "2.0.0-rtm-26452");
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -176,6 +175,8 @@ namespace pneumail.Migrations
 
                     b.Property<Guid?>("MessageId2");
 
+                    b.Property<string>("Name");
+
                     b.Property<string>("Username");
 
                     b.HasKey("Id");
@@ -198,9 +199,11 @@ namespace pneumail.Migrations
 
                     b.Property<string>("Password");
 
+                    b.Property<int>("Port");
+
                     b.Property<string>("UserId");
 
-                    b.Property<string>("UserName");
+                    b.Property<string>("Username");
 
                     b.HasKey("Id");
 
@@ -217,6 +220,8 @@ namespace pneumail.Migrations
                     b.Property<Guid?>("CategoryId");
 
                     b.Property<string>("Content");
+
+                    b.Property<DateTime>("Date");
 
                     b.Property<Guid?>("PreviousId");
 

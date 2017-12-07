@@ -26,7 +26,6 @@ namespace Pneumail.Controllers
         private WebSocket WebSocket;
         private ApplicationDbContext _data;
         private UserManager<User> _userManager;
-        private EmailService emailService;
         public WebSocketController(ApplicationDbContext data,
                                     UserManager<User> userManager)
         {
