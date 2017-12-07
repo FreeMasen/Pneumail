@@ -54,6 +54,8 @@ namespace Pneumail.Models
                 return this.PreviousId.HasValue;
             }
         }
+
+        public DateTime Date { get; set; }
         public Message()
         {
 

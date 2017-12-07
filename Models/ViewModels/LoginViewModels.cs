@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-namespace Pneumail.Models
+namespace Pneumail.ViewModels
 {
     public class LoginViewModel
     {

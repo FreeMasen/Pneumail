@@ -1,4 +1,6 @@
 using System;
+using System.Net;
+
 namespace Pneumail.Models
 {
     /// <summary>
@@ -24,5 +26,13 @@ namespace Pneumail.Models
         /// The user's external password for this service
         /// </summary>
         public string Password { get; set; }
+        /// <summary>
+        /// The port to connect to the service provider
+        /// </summary>
+        public int Port { get; set; }
+
+        public NetworkCredential Credentials() {
+            return new NetworkCredential(Username, Password);
+        }
     }
 }

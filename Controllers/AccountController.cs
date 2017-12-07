@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Pneumail.Data;
 using Pneumail.Models;
+using Pneumail.ViewModels;
 
 namespace Pneumail.Controllers
 {
@@ -157,6 +158,16 @@ namespace Pneumail.Controllers
             // _data.Update(user);
             // await _data.SaveChangesAsync();
             return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public IActionResult Settings()
+        {
+            return View(new SettingsViewModel());
+        }
+
+        public IActionResult EmailService(EmailServiceViewModel model) {
+            return ViewComponent("EmailServiceViewComponent", new {model = model});
         }
     }
 }
