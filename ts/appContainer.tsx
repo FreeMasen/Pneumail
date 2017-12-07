@@ -11,6 +11,7 @@ interface IAppState {
     searchValue: string;
     sideBarState: SideBarState;
     categories: any[];
+    path?: string;
 }
 
 interface IAppDispatch {
@@ -24,17 +25,26 @@ export default class AppContainer extends React.Component<any, IAppState> {
         this.state = {
             searchValue: '',
             sideBarState: SideBarState.Open,
-            categories: [] as any[]
+            categories: [] as any[],
+            path: '/', 
         }
         this.db.listen(categories => {
-            console.log('listen', categories);
             this.setState((prev, props) => {
                 return {
                     categories
                 }
             });
         });
+        
+        window.addEventListener('popstate', ev => {
+            console.log('window.popstate', ev);
+        });
     }
+
+    navigationClicked(href: string) {
+        console.log('navigationClicked', href);
+    }
+
     componentWillMount() {
         // console.log('appContainer', 'componentWillMount', this.state)
     }
@@ -67,10 +77,12 @@ export default class AppContainer extends React.Component<any, IAppState> {
                         options={[
                             new SideBarOption('Inbox', '/', Icons.InboxIcon),
                             new SideBarOption('Sent', '/sent', Icons.SentIcon),
-                            new SideBarOption('Trips', '/trips', Icons.TripsIcon)
+                            new SideBarOption('Trips', '/trips', Icons.TripsIcon),
+                            new SideBarOption('Settings', '/Account/Settings')
                         ]}
                         width={this.state.sideBarState}
                         toggleWidth={() => this.toggleSidebar()}
+                        elementClicked={href => this.navigationClicked(href)}
                     />
                     {this.state.categories.length > 0 ? <Messages
                         title={this.state.categories[0].name}

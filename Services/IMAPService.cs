@@ -12,6 +12,7 @@ namespace Pneumail.Services
 {
     public class IMAPService
     {
+        private static SortedSet<Guid> CurrentlyFetching = new SortedSet<Guid>();
         public IMAPService()
         {
 
@@ -21,17 +22,25 @@ namespace Pneumail.Services
         {
             var ret = new List<Message>();
             try {
+                if (!IMAPService.CurrentlyFetching.Add(service.Id)) {
+                    Console.WriteLine("Already fetching that service");
+                    return ret;
+                }
                 var client = new ImapClient();
                 await client.ConnectAsync(service.Address, service.Port, SecureSocketOptions.SslOnConnect);
                 if (client.IsConnected)
                 {
+                    Console.WriteLine("Connected!");
                     await client.AuthenticateAsync(Encoding.UTF8, service.Credentials());
                     if (client.IsAuthenticated)
                     {
+                        Console.WriteLine("Authenticated!");
                         foreach (var folder in await client.GetFoldersAsync(client.PersonalNamespaces.First()))
                         {
+                            Console.WriteLine($"trying to open {folder.Name}");
                             await folder.OpenAsync(FolderAccess.ReadOnly);
-                            ret.Concat(folder.Select(m => MapMessage(m)));
+                            Console.WriteLine($"adding {folder.Count()} messages");
+                            ret = ret.Concat(folder.Select(m => MapMessage(m))).ToList();
                         }
                     }
                 }
@@ -39,9 +48,20 @@ namespace Pneumail.Services
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                throw ex;
+            } 
+            finally 
+            {
+                IMAPService.CurrentlyFetching.Remove(service.Id);
             }
             return ret;
+        }
+
+        private bool AddFetching(Guid newId) {
+            if (IMAPService.CurrentlyFetching.Contains(newId)) {
+                return false;
+            }
+            return IMAPService.CurrentlyFetching.Add(newId);
+            
         }
 
         // public async void Connected(Object sender, EventArgs e) {
@@ -94,16 +114,21 @@ namespace Pneumail.Services
         }
 
         private Message MapMessage(MimeKit.MimeMessage from) {
-            return new Message {
-                Date = from.Date.Date,
-                Sender = new EmailAddress(from.Sender.Address, from.Sender.Name),
-                Subject = from.Subject,
-                Recipients = from.To.Select(r => new EmailAddress(r.ToString(),r.Name)).ToList(),
-                Copied = from.Cc.Select(r => new EmailAddress(r.ToString(), r.Name)).ToList(),
-                BlindCopied = from.Bcc.Select(r => new EmailAddress(r.ToString(), r.Name)).ToList(),
-                Content = from.HtmlBody != null ? from.HtmlBody : from.TextBody,
-                //todo: Add attachments
-            };
+            try {
+                var ret = new Message();
+                ret.Date = from.Date.Date;
+                ret.Sender = from.From.Select(s => new EmailAddress(s.ToString(), s.Name)).First();
+                ret.Subject = from.Subject;
+                ret.Recipients = from.To.Select(r => new EmailAddress(r.ToString(),r.Name)).ToList();
+                ret.Copied = from.Cc.Select(r => new EmailAddress(r.ToString(), r.Name)).ToList();
+                ret.BlindCopied = from.Bcc.Select(r => new EmailAddress(r.ToString(), r.Name)).ToList();
+                ret.Content = from.HtmlBody != null ? from.HtmlBody : from.TextBody;
+                    //todo: Add attachments
+                return ret;
+            } catch (Exception ex) {
+                Console.WriteLine(ex.Message);
+                throw ex;
+            }
         }
     }
 }

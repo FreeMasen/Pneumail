@@ -38,7 +38,6 @@ namespace Pneumail.Controllers
         /// </summary>
         public async Task Sock()
         {
-            new IMAPService();
             if (HttpContext.WebSockets.IsWebSocketRequest) {
                 WebSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
                 Console.WriteLine("Accepted Websocket");

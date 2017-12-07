@@ -14,6 +14,7 @@ interface ISideBarProps {
     options: Array<SideBarOption>;
     //Dispatch
     toggleWidth: () => void;
+    elementClicked?: (href: string) => void;
 }
 
 export default class SideBar extends React.Component<ISideBarProps, ISideBarState> {
@@ -40,6 +41,7 @@ export default class SideBar extends React.Component<ISideBarProps, ISideBarStat
                         href={option.value}
                         icon={option.icon}
                         width={this.props.width}
+                        itemClicked={href => this.props.elementClicked(href)}
                     />)}
             </div>
         );

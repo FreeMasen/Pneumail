@@ -1,0 +1,25 @@
+.services-container {
+    padding-left: 15px;
+    .services {
+        display: flex;
+        flex-flow: row;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        align-items: center;
+    }
+
+    .email-service-form {
+        &.hidden {
+            display: none;
+        }
+        padding: 5px;
+        width: fit-content;
+        display: flex;
+        flex-flow: column;
+        justify-content: space-between;
+        .input-group {
+            display: flex;
+            flex-flow: column;
+        }
+    }
+}

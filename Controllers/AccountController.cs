@@ -3,16 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Threading;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using Pneumail.Data;
 using Pneumail.Models;
 using Pneumail.ViewModels;
+using Pneumail.Services;
 
 namespace Pneumail.Controllers
 {
@@ -120,6 +124,11 @@ namespace Pneumail.Controllers
 
         public async Task<IActionResult> Seed()
         {
+            using (var reader = System.IO.File.OpenText("seed.json"))
+            {
+                new JsonTextReader(reader);
+            }
+
             var user = await _userManager.GetUserAsync(HttpContext.User);
 
             var incomplete = new Category() {
@@ -153,21 +162,60 @@ namespace Pneumail.Controllers
             }
             user.Categories.Add(incomplete);
             user.Services = new List<EmailService>();
-
             await _userManager.UpdateAsync(user);
-            // _data.Update(user);
-            // await _data.SaveChangesAsync();
+
             return RedirectToAction("Index", "Home");
         }
 
         [HttpGet]
-        public IActionResult Settings()
+        public async Task<IActionResult> Settings()
         {
+            var userId = _userManager.GetUserId(User);
+            var user = await _data.Users.Where(u => u.Id == userId)
+                                    .Include(u => u.Services)
+                                    .FirstAsync();
+            if (user != null) {
+                return View(new SettingsViewModel(user));
+            }
             return View(new SettingsViewModel());
         }
+        [HttpPost]
+        public async Task<IActionResult> EmailService(EmailServiceViewModel model) 
+        {
+            if (ModelState.IsValid) {
+                var userId = _userManager.GetUserId(User);
+                var user = await _data.Users.Where(u => u.Id == userId)
+                                            .Include(u => u.Services)
+                                            .FirstAsync();
+                if (model.Id != null) {
+                    //update
+                    var service = user.Services.Where(s => s.Id == model.Id).First();
+                    service.Address = model.Address;
+                    if (!String.IsNullOrEmpty(model.Password)) {
+                        service.Password = model.Password;
+                    }
+                    service.Port = model.Port;
+                    service.Username = model.Username;
+                    GetMessages(service);
+                    
+                } else {
+                    //new
+                    user.Services.Add(new EmailService {
+                        Address = model.Address,
+                        Port = model.Port,
+                        Username = model.Username,
+                        Password = model.Password,
+                    });
+                }
+                await _data.SaveChangesAsync();
+            }
+            return RedirectToAction(nameof(Settings));
+        }
 
-        public IActionResult EmailService(EmailServiceViewModel model) {
-            return ViewComponent("EmailServiceViewComponent", new {model = model});
+        private async void GetMessages(EmailService service)
+        {
+            await new IMAPService().GetMessages(service);
         }
     }
+
 }

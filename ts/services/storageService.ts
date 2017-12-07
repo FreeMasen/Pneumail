@@ -18,13 +18,13 @@ export default class StorageService extends Dexie {
     }
 
     public async storeUpdate(update): Promise<any> {
-        console.log('StorageService.storeUpdate(', update, ')');
+        // console.log('StorageService.storeUpdate(', update, ')');
         if (update.updateType == 0) return;
         if ((update.updateType | UpdateType.None ) > 0) {
 
         }
         if ((update.updateType | UpdateType.Initial) > 0) {
-            console.log('StorageService->initial update', update);
+            // console.log('StorageService->initial update', update);
             return await this.storeCategories(...update.categories)
         }
         if ((update.updateType | UpdateType.Insert) > 0) {
@@ -39,7 +39,7 @@ export default class StorageService extends Dexie {
     }
 
     public async storeCategories(...categories: Array<Category>){
-        console.log('StorageService.storeCategories(', categories, ')');
+        // console.log('StorageService.storeCategories(', categories, ')');
         for (let cat of categories) {
             await this.storeCategory(cat);
         }

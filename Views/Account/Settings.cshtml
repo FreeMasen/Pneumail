@@ -3,5 +3,31 @@
 <div class="top-bar paper">
     <span>Pneumail</span>
 </div>
-
-@await Component.InvokeAsync("EmailService")
+<div class="services-container">
+    <h3>Services</h3>
+    <div class="services">
+        @foreach (var service in Model.Services) {
+            @await Component.InvokeAsync("EmailService", new { id = service.Id, hidden = false })
+        }
+        @await Component.InvokeAsync("EmailService")
+        <button id="new-service" type="buttton">+</button>
+    </div>
+</div>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        var btn = document.getElementById('new-service');
+        if (!btn) return;
+        btn.addEventListener('click', reveal);
+    });
+    function reveal(ev) {
+        let hiddenForm = document.querySelector('.email-service-form.hidden');
+        if (hiddenForm) {
+            hiddenForm.setAttribute('class', 'email-service-form');
+        } else {
+            let error = document.createElement('span');
+            error.setAttribute('class', 'error-message');
+            error.appendChild(document.createTextNode('Please save work in progress before adding another service'));
+            ev.currentTarget.parentNode.parentNode.appendChild(error);
+        }
+    }
+</script>

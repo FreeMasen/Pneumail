@@ -1,6 +1,36 @@
 @model EmailServiceViewModel
-<input asp-for="@Model.Address" />
-<input asp-for="@Model.Port" />
-<input asp-for="@Model.Username" />
-<input asp-for="@Model.Password" />
-<input type="hidden" asp-for="@Model.Id" />
+@{string hiddenText = "";}
+@if(Model.Hidden) 
+{
+    hiddenText = " hidden";
+}
+<form class="@($"email-service-form{hiddenText}")" asp-action="EmailService" asp-controller="Account">
+    @{string prefix = "new"; }
+    @if (Model.Id != null) 
+    {
+        prefix = Model.Id.ToString();
+    } 
+    <div class="input-group">
+        <label for="@($"{prefix}-address")" class="input-label">Address</label>
+        <input id="@($"{prefix}-address")" asp-for="@Model.Address" />
+    </div>
+    <div class="input-group">
+        <label for="@($"{prefix}-port")" class="input-label">Port</label>
+        <input id="@($"{prefix}-port")" asp-for="@Model.Port" />
+    </div>
+    <div class="input-group">
+        <label for="@($"{prefix}-username")" class="input-label">Username/EmailAddress</label>
+        <input id="@($"{prefix}-username")" asp-for="@Model.Username" />
+    </div>
+    <div class="input-group">
+        <label for="@($"{prefix}-password")" class="input-label">Password</label>
+        <input id="@($"{prefix}-password")" type="password" asp-for="@Model.Password" />
+    </div>
+    <div class="input-group">
+        <label for="@($"{prefix}-confirm-password")" class="input-label">ConfirmPassword</label>
+        <input id="@($"{prefix}-confirm-password")" type="password" asp-for="@Model.ConfirmPassword" />
+    </div>
+    <input type="hidden" asp-for="@Model.Id" />
+    <div asp-validation-summary="All"></div>
+    <button type="submit" class="form-button">Save</button>
+</form>
