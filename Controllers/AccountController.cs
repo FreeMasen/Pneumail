@@ -100,14 +100,11 @@ namespace Pneumail.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = new User() {
-                    UserName = model.Username,
-                };
-                var result = await _userManager.CreateAsync(user, model.Password);
+
+                var result = await CreateUser(model);
                 if (result.Succeeded) {
                     return RedirectToAction("Login", "Account");
                 } else {
-
                     foreach (var e in result.Errors) {
                         ModelState.AddModelError(e.Code, e.Description);
                     }
@@ -122,51 +119,6 @@ namespace Pneumail.Controllers
             return RedirectToAction(nameof(Login));
         }
 
-        public async Task<IActionResult> Seed()
-        {
-            using (var reader = System.IO.File.OpenText("seed.json"))
-            {
-                new JsonTextReader(reader);
-            }
-
-            var user = await _userManager.GetUserAsync(HttpContext.User);
-
-            var incomplete = new Category() {
-                Name = "Incomplete",
-                Messages = new List<Message>(),
-            };
-            user.Categories = new List<Category>();
-            for (var i = 0; i < 10; i++)
-            {
-                incomplete.Messages.Add(new Message(){
-                    Sender = new EmailAddress() {
-                        Username = "sender",
-                        Host = "mail",
-                        Domain = "com"
-                    },
-                    Recipients = new List<EmailAddress>() {
-                        new EmailAddress() {
-                            Username = "recipient",
-                            Host = "mail",
-                            Domain = "com"
-                        }
-                    },
-                    Subject = $"{i}: The quick brown fox jumpped over the lazy dog",
-                    Content = @"Sed ut perspiciatis, unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam eaque ipsa, quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt, explicabo. Nemo enim ipsam voluptatem, quia voluptas sit, aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos, qui ratione voluptatem sequi nesciunt, neque porro quisquam est, qui dolorem ipsum, quia dolor sit amet consectetur adipisci[ng] velit, sed quia non numquam [do] eius modi tempora inci[di]dunt, ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit, qui in ea voluptate velit esse, quam nihil molestiae consequatur, vel illum, qui dolorem eum fugiat, quo voluptas nulla pariatur?
-
-                                At vero eos et accusamus et iusto odio dignissimos ducimus, qui blanditiis praesentium voluptatum deleniti atque corrupti, quos dolores et quas molestias excepturi sint, obcaecati cupiditate non provident, similique sunt in culpa, qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio, cumque nihil impedit, quo minus id, quod maxime placeat, facere possimus, omnis voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet, ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat…",
-                    Attachments = new List<Attachment>(),
-                    BlindCopied = new List<EmailAddress>(),
-                    Copied = new List<EmailAddress>()
-                });
-            }
-            user.Categories.Add(incomplete);
-            user.Services = new List<EmailService>();
-            await _userManager.UpdateAsync(user);
-
-            return RedirectToAction("Index", "Home");
-        }
-
         [HttpGet]
         public async Task<IActionResult> Settings()
         {
@@ -179,43 +131,33 @@ namespace Pneumail.Controllers
             }
             return View(new SettingsViewModel());
         }
-        [HttpPost]
-        public async Task<IActionResult> EmailService(EmailServiceViewModel model) 
-        {
-            if (ModelState.IsValid) {
-                var userId = _userManager.GetUserId(User);
-                var user = await _data.Users.Where(u => u.Id == userId)
-                                            .Include(u => u.Services)
-                                            .FirstAsync();
-                if (model.Id != null) {
-                    //update
-                    var service = user.Services.Where(s => s.Id == model.Id).First();
-                    service.Address = model.Address;
-                    if (!String.IsNullOrEmpty(model.Password)) {
-                        service.Password = model.Password;
-                    }
-                    service.Port = model.Port;
-                    service.Username = model.Username;
-                    GetMessages(service);
-                    
-                } else {
-                    //new
-                    user.Services.Add(new EmailService {
-                        Address = model.Address,
-                        Port = model.Port,
-                        Username = model.Username,
-                        Password = model.Password,
-                    });
-                }
-                await _data.SaveChangesAsync();
-            }
-            return RedirectToAction(nameof(Settings));
-        }
 
+#region helpers
+        public async Task<IdentityResult> CreateUser(RegisterViewModel model)
+        {
+            var user = new User() {
+                UserName = model.Username,
+                Categories = new List<Category>() {
+                    new Category() {
+                        Messages = new List<Message>(),
+                        Name = "Sent",
+                    },
+                    new Category() {
+                        Messages = new List<Message>(),
+                        Name = "Incomplete"
+                    },
+                    new Category() {
+                        Messages = new List<Message>(),
+                        Name = "Complete"
+                    }
+                }
+            };
+            return await _userManager.CreateAsync(user, model.Password);
+        }
         private async void GetMessages(EmailService service)
         {
             await new IMAPService().GetMessages(service);
         }
+#endregion
     }
-
 }

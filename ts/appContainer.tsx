@@ -4,14 +4,19 @@ import TopBar from './components/topBar/TopBar';
 import {SideBarOption} from './models/option'
 import Icons from './components/icons/Icons';
 import SearchBar from './components/searchBar/SearchBar';
-import {SideBarState} from './enums';
+import {SideBarState, UpdateType} from './enums';
 import DataService from './services/dataService';
 import Messages from './components/messages/Messages';
+import Settings from './components/settings/Settings';
+
 interface IAppState {
     searchValue: string;
     sideBarState: SideBarState;
     categories: any[];
     path?: string;
+    component: JSX.Element;
+    rules: any[];
+    services: any[];
 }
 
 interface IAppDispatch {
@@ -20,33 +25,100 @@ interface IAppDispatch {
 export default class AppContainer extends React.Component<any, IAppState> {
     db = new DataService(`ws://${location.host}/WebSocket/Sock`, 'pneumail')
     constructor(props) {
-
         super(props);
         this.state = {
             searchValue: '',
             sideBarState: SideBarState.Open,
             categories: [] as any[],
-            path: '/', 
+            path: 'messages/incompolete',
+            component: null,
+            rules: [],
+            services: [],
         }
-        this.db.listen(categories => {
-            this.setState((prev, props) => {
-                return {
-                    categories
-                }
-            });
-        });
-        
+        this.db.listen((event: IUpdate) => this.updateState(event));
         window.addEventListener('popstate', ev => {
             console.log('window.popstate', ev);
         });
+        // window.history.pushState({href: 'messages/incomplete'},'Pneumail - Incomplete', 'messages/incomplete');
+    }
+
+    updateState = (update: IUpdate) => {
+        console.log('updateState', update);
+        switch (update.event) {
+            case 'categories':
+                this.setState((prev, props) => {
+                    return {
+                        categories: update.data,
+                    };
+                });
+            break;
+            case 'rules':
+                this.setState((prev, props) => {
+                    return {
+                        rules: update.data,
+                    };
+                });
+            break;
+            case 'services':
+                this.setState((prev, props) => {
+                    return {
+                        services: update.data,
+                    };
+                });
+            break;
+        }
     }
 
     navigationClicked(href: string) {
         console.log('navigationClicked', href);
+        if (location.href != href) {
+            history.pushState({href: href}, '', href);
+        }
+        if (href != this.state.path) {
+            this.setState((prev, props) => {
+                return {
+                    path: href,
+                    component: this.switchMainContent(href),
+                }
+            });
+        }
+    }
+
+    switchMainContent(href: string): JSX.Element {
+        let component = this.state.component;
+        if (/\/messages\/[a-zA-Z0-9]+/.test(href)) {
+            let split = href.split('/');
+            return this.switchMessages(split[split.length - 1]);
+        }
+        if (href == '/settings') {
+            return <Settings
+                            Rules={this.state.rules}
+                            EmailServices={this.state.services}
+                            updateService={service => this.updateService(service)}
+                        />
+        }
+    }
+
+    switchMessages(categoryName: string): JSX.Element {
+        let index = this.state.categories.findIndex(c => c.name == categoryName)
+        if (index < 0) return;
+        let category = this.state.categories[index] as ICategory;
+        return (
+            <Messages
+                messages={category.messages}
+                expanded={this.state.sideBarState == SideBarState.Closed}
+                title={category.name}
+            />
+        )
     }
 
     componentWillMount() {
         // console.log('appContainer', 'componentWillMount', this.state)
+        if (location.href == '') {
+            history.replaceState({href: 'messages/incomplete'}, 'Pneumail - incomplete', 'messages/incomplete')
+        } else {
+            this.navigationClicked(location.href);
+        }
     }
     componentDidMount() {
         // console.log('appContainer', 'componentDidMount', this.state)
@@ -64,6 +136,7 @@ export default class AppContainer extends React.Component<any, IAppState> {
     componentWillUnmount() {
         // console.log('appContainer', 'componentWillUnmount', this.state)
     }
+
     render() {
         return (
             <div id="app-container">
@@ -74,21 +147,17 @@ export default class AppContainer extends React.Component<any, IAppState> {
                 <div className="main-content">
                     <SideBar
                         title="Collections"
-                        options={[
-                            new SideBarOption('Inbox', '/', Icons.InboxIcon),
-                            new SideBarOption('Sent', '/sent', Icons.SentIcon),
-                            new SideBarOption('Trips', '/trips', Icons.TripsIcon),
-                            new SideBarOption('Settings', '/Account/Settings')
-                        ]}
+                        options={
+                            this.state.categories.map(c => {
+                                return new SideBarOption(c.name, `/messages/${c.name}`, Icons.letters(c.name.substring(0,2), `${c.name}-sidebar`))
+                            }).concat([new SideBarOption('Settings', '/settings', Icons.letters('se', 'settings-sidebar'))])}
                         width={this.state.sideBarState}
                         toggleWidth={() => this.toggleSidebar()}
                         elementClicked={href => this.navigationClicked(href)}
                     />
-                    {this.state.categories.length > 0 ? <Messages
-                        title={this.state.categories[0].name}
-                        messages={this.state.categories[0].messages}
-                        expanded={this.state.sideBarState == SideBarState.Closed}
-                    /> : null}
+                    <div className={`main-container${this.state.sideBarState == SideBarState.Closed ? ' expanded' : ''}`}>
+                        {this.state.component}
+                    </div>
                 </div>
             </div>
         )
@@ -108,5 +177,9 @@ export default class AppContainer extends React.Component<any, IAppState> {
                 value: value
             }
         });
+    }
+
+    updateService = (service: IEmailService) => {
+        this.db.sendServiceUpdate(service);
     }
 }

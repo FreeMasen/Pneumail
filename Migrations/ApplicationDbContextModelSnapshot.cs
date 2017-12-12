@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Pneumail.Data;
+using Pneumail.Models;
 using System;
 
 namespace pneumail.Migrations
@@ -223,7 +224,13 @@ namespace pneumail.Migrations
 
                     b.Property<DateTime>("Date");
 
+                    b.Property<bool>("IsComplete");
+
+                    b.Property<bool>("IsDelayed");
+
                     b.Property<Guid?>("PreviousId");
+
+                    b.Property<DateTime?>("Redelivery");
 
                     b.Property<Guid?>("SenderId");
 
@@ -236,6 +243,24 @@ namespace pneumail.Migrations
                     b.HasIndex("SenderId");
 
                     b.ToTable("Message");
+                });
+
+            modelBuilder.Entity("Pneumail.Models.Rule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<int>("Location");
+
+                    b.Property<string>("SearchTerm");
+
+                    b.Property<string>("UserId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Rule");
                 });
 
             modelBuilder.Entity("Pneumail.Models.User", b =>
@@ -378,6 +403,13 @@ namespace pneumail.Migrations
                     b.HasOne("Pneumail.Models.EmailAddress", "Sender")
                         .WithMany()
                         .HasForeignKey("SenderId");
+                });
+
+            modelBuilder.Entity("Pneumail.Models.Rule", b =>
+                {
+                    b.HasOne("Pneumail.Models.User")
+                        .WithMany("Rules")
+                        .HasForeignKey("UserId");
                 });
 #pragma warning restore 612, 618
         }

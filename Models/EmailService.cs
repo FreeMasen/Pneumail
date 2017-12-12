@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 
 namespace Pneumail.Models
@@ -8,7 +9,7 @@ namespace Pneumail.Models
     /// user has decided to have our client
     /// handle messages to/from
     /// </summary>
-    public class EmailService 
+    public class EmailService
     {
         /// <summary>
         /// The unique id for this service
@@ -30,7 +31,10 @@ namespace Pneumail.Models
         /// The port to connect to the service provider
         /// </summary>
         public int Port { get; set; }
-
+        /// <summary>
+        /// The service's source folder information
+        /// </summary>
+        public List<EmailFolder> Folders { get; set; }
         public NetworkCredential Credentials() {
             return new NetworkCredential(Username, Password);
         }

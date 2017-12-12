@@ -1,8 +1,12 @@
 @import 'colors';
 
+.side-bar-container {
+    position: relative;
+}
+
 .side-bar {
     position: absolute;
-    top: 75px;
+    top: 0;
     left: 0;
     width: 250px;
     transition: 0.2s linear;

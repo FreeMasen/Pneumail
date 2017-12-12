@@ -1,18 +1,18 @@
-interface Attachment {
+
+interface IAttachment {
     id: string;
     msgId: string;
     name: string;
     path: string;
 }
 
-interface Category {
+interface ICategory {
     id: string;
     name: string;
-    messages?: Array<Message>;
+    messages?: Array<IMessage>;
 }
 
-
-interface Message {
+interface IMessage {
     id: string;
     catId: string;
     sender: string;
@@ -23,5 +23,25 @@ interface Message {
     content: string;
     previousId?: string;
     isReply: boolean;
-    attachments?: Array<Attachment>;
+    attachments?: Array<IAttachment>;
+}
+
+interface IEmailService {
+    id?: string;
+    address: string;
+    port: number;
+    username: string;
+    password?: string;
+    confirmPassword?: string;
+}
+
+interface IRule {
+    id?: string;
+    searchTerm: string;
+    location: number;
+}
+
+interface IUpdate {
+    event: string;
+    data: any;
 }

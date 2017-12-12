@@ -195,6 +195,26 @@ namespace pneumail.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Rule",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "BLOB", nullable: false),
+                    Location = table.Column<int>(type: "INTEGER", nullable: false),
+                    SearchTerm = table.Column<string>(type: "TEXT", nullable: true),
+                    UserId = table.Column<string>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Rule", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Rule_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Message",
                 columns: table => new
                 {
@@ -202,7 +222,10 @@ namespace pneumail.Migrations
                     CategoryId = table.Column<Guid>(type: "BLOB", nullable: true),
                     Content = table.Column<string>(type: "TEXT", nullable: true),
                     Date = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    IsComplete = table.Column<bool>(type: "INTEGER", nullable: false),
+                    IsDelayed = table.Column<bool>(type: "INTEGER", nullable: false),
                     PreviousId = table.Column<Guid>(type: "BLOB", nullable: true),
+                    Redelivery = table.Column<DateTime>(type: "TEXT", nullable: true),
                     SenderId = table.Column<Guid>(type: "BLOB", nullable: true),
                     Subject = table.Column<string>(type: "TEXT", nullable: true)
                 },
@@ -350,6 +373,11 @@ namespace pneumail.Migrations
                 table: "Message",
                 column: "SenderId");
 
+            migrationBuilder.CreateIndex(
+                name: "IX_Rule_UserId",
+                table: "Rule",
+                column: "UserId");
+
             migrationBuilder.AddForeignKey(
                 name: "FK_Message_EmailAddress_SenderId",
                 table: "Message",
@@ -397,6 +425,9 @@ namespace pneumail.Migrations
 
             migrationBuilder.DropTable(
                 name: "EmailService");
+
+            migrationBuilder.DropTable(
+                name: "Rule");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

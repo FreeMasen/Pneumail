@@ -18,5 +18,6 @@ namespace Pneumail.Models
         /// been sorted into
         /// </summary>
         public List<Category> Categories { get; set; }
+        public List<Rule> Rules { get; set; }
     }
 }

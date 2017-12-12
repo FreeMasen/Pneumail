@@ -1,5 +1,6 @@
 import StorageService from './storageService';
 import { UpdateType } from '../enums';
+type Listener = (update: IUpdate) => void;
 /**
  * Main data service provider. This class
  * will deal with the result of the webworker's
@@ -12,7 +13,7 @@ import { UpdateType } from '../enums';
 export default class DataService {
     private worker: Worker;
     private storageService: StorageService;
-    private listeners = [];
+    private listeners: Array<Listener> = [];
      /**
       * Create a new DataService
       * @param {string} connectionURI The websocket URI/Path
@@ -21,7 +22,6 @@ export default class DataService {
     constructor(
         private connectionURI: string,
         name: string) {
-        // console.log('new DataService(', connectionURI, name, ')');
         this.worker = new Worker('/js/worker.js');
         this.worker.postMessage({
             event: 'start',
@@ -33,10 +33,40 @@ export default class DataService {
         this.storageService = new StorageService(name);
     }
 
-    public async listen(listener)  {
+    public async listen(listener: Listener)  {
         this.listeners.push(listener);
         //send the last state we had
-        listener(await this.storageService.getCategories());
+
+    }
+
+    private async sendCategories() {
+        let update = {
+            event: 'categories',
+            data: await this.storageService.getCategories(),
+        }
+        for (let listener of this.listeners) {
+            listener(update);
+        }
+    }
+
+    private async sendServices() {
+        let update = {
+            event: 'services',
+            data: await this.storageService.getServices(),
+        }
+        for (let listener of this.listeners) {
+            listener(update);
+        }
+    }
+
+    private async sendRules() {
+        let update = {
+            event: 'rules',
+            data: await this.storageService.getRules(),
+        }
+        for (let listener of this.listeners) {
+            listener(update);
+        }
     }
 
     private messageFromWorker(msg: any) {
@@ -54,18 +84,25 @@ export default class DataService {
         }
     }
 
-    private newMessage(updateType: UpdateType) {
+    private async newMessage(updateType: UpdateType) {
         // console.log('DataService.newMessage(', updateType, ')');
         switch (updateType) {
             case UpdateType.Initial:
-                // console.log('UpdateType.Initial');
-                this.storageService.getCategories()
-                    .then(categories => {
-                        // console.log('storageService.getCategories()', categories);
-                        for (let listener of this.listeners) {
-                            listener(categories);
-                        }
-                    })
+                for (let listener of this.listeners) {
+                    this.sendCategories();
+                    this.sendServices();
+                    this.sendRules();
+                }
+            break;
         }
+    }
+
+    public sendServiceUpdate(service: IEmailService) {
+        this.worker.postMessage(
+            {
+                event: 'update-service',
+                service: service
+            }
+        );
     }
 }

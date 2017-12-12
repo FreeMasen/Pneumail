@@ -1,6 +1,7 @@
 .vscode
 wwwroot/js/*.js
 **/*.js.map
+**/*.js.gz
 **/node_modules
 /**/*.css
 **/*/css.map
@@ -10,3 +11,4 @@ bin/
 obj/
 appsettings.json
 appsettings.Development.json
+**/*.sqlite

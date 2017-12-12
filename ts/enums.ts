@@ -20,5 +20,14 @@ export enum UpdateType {
     Initial = 1,
     Insert = 2,
     Delete = 4,
-    Modify = 8
+    Modify = 8,
+    ServiceUpdateConfirmation = 16,
+    RuleUpdateConfirmation = 32
+}
+
+export enum SearchLocation {
+    Subject = 1,
+    Body = 2,
+    From = 4,
+    To = 8,
 }

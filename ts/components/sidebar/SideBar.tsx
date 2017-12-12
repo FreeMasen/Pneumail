@@ -25,24 +25,26 @@ export default class SideBar extends React.Component<ISideBarProps, ISideBarStat
     render() {
 
         return (
-            <div className={`side-bar paper ${this.props.width == SideBarState.Open ? 'open' : 'closed'}`}>
-                <div className="side-bar-title-container">
-                    <span className="side-bar-title">
-                        {this.props.title}
-                    </span>
-                    <div className="toggle-container">
-                        {this.props.toggle || this.defaultToggle}
+            <div className="side-bar-container">
+                <div className={`side-bar paper ${this.props.width == SideBarState.Open ? 'open' : 'closed'}`}>
+                    <div className="side-bar-title-container">
+                        <span className="side-bar-title">
+                            {this.props.title}
+                        </span>
+                        <div className="toggle-container">
+                            {this.props.toggle || this.defaultToggle}
+                        </div>
                     </div>
+                    {this.props.options.map(option =>
+                        <SideBarItem
+                            key={option.value}
+                            content={option.text}
+                            href={option.value}
+                            icon={option.icon}
+                            width={this.props.width}
+                            itemClicked={href => this.props.elementClicked(href)}
+                        />)}
                 </div>
-                {this.props.options.map(option =>
-                    <SideBarItem
-                        key={option.value}
-                        content={option.text}
-                        href={option.value}
-                        icon={option.icon}
-                        width={this.props.width}
-                        itemClicked={href => this.props.elementClicked(href)}
-                    />)}
             </div>
         );
     }

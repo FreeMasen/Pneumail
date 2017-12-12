@@ -1,13 +1,5 @@
 .messages {
-    margin-left: 275px;
-    margin-top: 50px;
-    margin-right: 10px;
     width: fit-content;
-    transition: 0.2s linear;
-    &.expanded {
-        margin-left: 75px;
-        transition: 0.2s linear;
-    }
     .messages-title-container {
         padding-bottom: 25px;
         padding-left: 10px;

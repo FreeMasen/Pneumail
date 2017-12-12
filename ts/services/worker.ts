@@ -7,6 +7,11 @@ addEventListener('message', ev => {
         case 'start':
             startListening(ev.data.uri, ev.data.name);
         break;
+        case 'update-service':
+            if (sock) {
+                sock.send(ev.data);
+            }
+        break;
     }
 });
 
@@ -26,7 +31,7 @@ export class DBWorker {
         this.db = new StorageService(name);
     }
 
-    send(msg) {
+    send(msg: any) {
         this.sock.send(msg);
     }
 

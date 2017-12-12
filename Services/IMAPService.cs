@@ -10,7 +10,12 @@ using Pneumail.Models;
 
 namespace Pneumail.Services 
 {
-    public class IMAPService
+
+    public interface IIncomingEmailService
+    {
+        Task GetMessages(EmailService service);
+    }
+    public class IMAPService: IIncomingEmailService
     {
         private static SortedSet<Guid> CurrentlyFetching = new SortedSet<Guid>();
         public IMAPService()
@@ -18,29 +23,35 @@ namespace Pneumail.Services
 
         }
 
-        public async Task<List<Message>> GetMessages(EmailService service)
+        public async Task GetMessages(EmailService service)
         {
-            var ret = new List<Message>();
             try {
                 if (!IMAPService.CurrentlyFetching.Add(service.Id)) {
-                    Console.WriteLine("Already fetching that service");
-                    return ret;
+                    return;
                 }
                 var client = new ImapClient();
                 await client.ConnectAsync(service.Address, service.Port, SecureSocketOptions.SslOnConnect);
                 if (client.IsConnected)
                 {
-                    Console.WriteLine("Connected!");
                     await client.AuthenticateAsync(Encoding.UTF8, service.Credentials());
                     if (client.IsAuthenticated)
                     {
-                        Console.WriteLine("Authenticated!");
+
                         foreach (var folder in await client.GetFoldersAsync(client.PersonalNamespaces.First()))
                         {
-                            Console.WriteLine($"trying to open {folder.Name}");
-                            await folder.OpenAsync(FolderAccess.ReadOnly);
-                            Console.WriteLine($"adding {folder.Count()} messages");
-                            ret = ret.Concat(folder.Select(m => MapMessage(m))).ToList();
+                            var mappedFolder = service.Folders.Where(f => f.Name == folder.Name).First();
+                            if (mappedFolder == null)
+                            {
+                                mappedFolder = new EmailFolder(folder);
+                            }
+                            if (FolderNeedsUpdate(folder, mappedFolder, service))
+                            {
+                                foreach (var summary in await folder.FetchAsync(0, -1, MessageSummaryItems.Full | MessageSummaryItems.UniqueId))
+                                {
+                                    Console.WriteLine($"{summary.ModSeq}: {summary.Index}\n{summary.UniqueId}: {summary.NormalizedSubject}");
+                                }
+
+                            }
                         }
                     }
                 }
@@ -53,64 +64,17 @@ namespace Pneumail.Services
             {
                 IMAPService.CurrentlyFetching.Remove(service.Id);
             }
-            return ret;
         }
 
-        private bool AddFetching(Guid newId) {
-            if (IMAPService.CurrentlyFetching.Contains(newId)) {
-                return false;
+        private bool FolderNeedsUpdate(IMailFolder server, EmailFolder client, EmailService service)
+        {
+            var modSeq = false;
+            if (server.SupportsModSeq) {
+                modSeq = (int) server.HighestModSeq != client.LastModSequence;
             }
-            return IMAPService.CurrentlyFetching.Add(newId);
-            
-        }
-
-        // public async void Connected(Object sender, EventArgs e) {
-        //     try {
-        //         Log($"Connected:\n{sender}\n{e}");
-        //         Client.Authenticated += Authenticated;
-        //         var c = new System.Net.NetworkCredential("r.f.masen@gmail.com", "Rfm3683$");
-        //         await this.Client.AuthenticateAsync(
-        //             System.Text.Encoding.UTF8,
-        //             c);
-        //     } catch (Exception err) {
-        //         Log($"Error Authenticating {err.Message}");
-        //     }
-        // }
-
-        // public async void Authenticated(Object sender, EventArgs e) {
-        //     try {
-        //         Log($"Authenticated:\n{sender}\n{e}");
-        //         // Client.Inbox.Subscribed += Subscribed;
-        //         var folders = await Client.GetFoldersAsync(Client.PersonalNamespaces.First());
-        //         foreach (var folder in folders) {
-        //             folder.Open(FolderAccess.ReadOnly);
-        //             Log($"Folder: {folder.FullName}, {folder.Count()}");
-        //             foreach (var msg in folder) {
-        //                 Log($"Message: {msg.MessageId}: {msg.Subject}");
-        //             }
-        //         }
-        //     } catch (Exception err) {
-        //         Log($"Error subscribing: {err}");
-        //     }
-        // }
-
-        // private void Alert(Object sender, EventArgs e) {
-        //     Log($"Alert:\n{sender}\n{e}");
-        // }
-
-        // private void Subscribed(Object sender, EventArgs e) {
-        //     try {
-        //         Client.Alert += Alert;
-        //     } catch (Exception ex) {
-        //         Log($"Error {ex}");
-        //     }
-        // }
-
-        private void Log(string msg) {
-            Console.BackgroundColor = System.ConsoleColor.DarkRed;
-            Console.ForegroundColor = System.ConsoleColor.White;
-            Console.WriteLine(msg);
-            Console.ResetColor();
+            return modSeq ||
+                (server.Count != client.Count) ||
+                (server.Unread != client.UnreadCount);
         }
 
         private Message MapMessage(MimeKit.MimeMessage from) {

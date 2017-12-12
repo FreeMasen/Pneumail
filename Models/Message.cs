@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace Pneumail.Models
 {
@@ -56,6 +58,10 @@ namespace Pneumail.Models
         }
 
         public DateTime Date { get; set; }
+        public bool IsComplete { get; set; }
+        public bool IsDelayed { get; set; }
+        public DateTime? Redelivery { get; set; }
+        public Guid CategoryId { get; set; }
         public Message()
         {
 
