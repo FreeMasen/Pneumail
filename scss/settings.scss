@@ -23,10 +23,30 @@
         }
     }
 }
+.email-services {
+    display: flex;
+    .email-service-container {
+        width: 250px;
+        padding: 5px;
+        margin: 5px;
+        &.error {
+            border: 1px solid red;
+        }
+    }
+}
 
-.email-service-container {
-    width: 250px;
-    padding: 5px;
+.rules-container {
+    .rules {
+        display: flex;
+        .rule-form {
+            width: 250px;
+            padding: 5px;
+            margin: 5px;
+            &.error {
+                border: 1px solid red;
+            }
+        }
+    }
 }
 
 .input-group {

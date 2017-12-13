@@ -4,14 +4,15 @@ import Rule from './Rule';
 
 interface ISettingsState {
     errorMsg?: string;
-    pendingNewService?: IEmailService
+    pendingNewService?: IEmailService;
+    pendingNewRule?: IRule;
 }
 
 interface ISettingsProps {
     EmailServices?: Array<IEmailService>;
     Rules?: Array<any>;
     updateService: (service: IEmailService) => void;
-
+    updateRule: (rule: IRule) => void;
 }
 
 export default class Settings extends React.Component<ISettingsProps, ISettingsState> {
@@ -29,12 +30,13 @@ export default class Settings extends React.Component<ISettingsProps, ISettingsS
             this.state.errorMsg != '' ?
                 <span className="error-message">{this.state.errorMsg}</span>
             : null}
-                <div className="emails-services-container">
+                <div className="email-services-container">
                 <h2>Email Services</h2>
                     <div className="email-services paper">
                         {
-                            this.props.EmailServices.map(service =>
+                            this.props.EmailServices.map((service, i) =>
                                 <EmailServiceSetting
+                                    key={`email-service-form-${service.id || i}`}
                                     service={service}
                                     update={service => this.props.updateService(service)}
                                     error={msg => this.showError(msg) }
@@ -50,7 +52,7 @@ export default class Settings extends React.Component<ISettingsProps, ISettingsS
                             : null
                         }
                         <button
-                            className="add service"
+                            className="form-button submit"
                             onClick={ev => this.addService()}
                         >+</button>
                     </div>
@@ -62,19 +64,28 @@ export default class Settings extends React.Component<ISettingsProps, ISettingsS
                             this.props.Rules.map(rule =>
                                 <Rule
                                     rule={rule}
+                                    onSave={rule => this.props.updateRule(rule)}
                                 />)
                         }
-                        <div
-                            className=""
-                            onClick={ev => {}}
-                        >+</div>
+                        {
+                            this.state.pendingNewRule ?
+                            <Rule
+                                rule={this.state.pendingNewRule}
+                                onSave={rule => this.props.updateRule(rule)}
+                            />
+                            : null
+                        }
+                        <button
+                            className="form-button"
+                            onClick={ev => this.addRule()}
+                        >+</button>
                     </div>
                 </div>
             </div>
         );
     }
 
-    showError = (msg: string) => {
+    showError(msg: string) {
         this.setState((prev, props) => {
             return {
                 errorMsg: msg,
@@ -82,7 +93,7 @@ export default class Settings extends React.Component<ISettingsProps, ISettingsS
         });
     }
 
-    addService = () => {
+    addService() {
         console.log('Settings.addService')
         this.setState((prev, props) => {
             return {
@@ -94,5 +105,16 @@ export default class Settings extends React.Component<ISettingsProps, ISettingsS
                 }
             };
         });
+    }
+
+    addRule() {
+        this.setState((prev, props) => {
+            return {
+                pendingNewRule: {
+                    searchTerm: '',
+                    location: 0
+                }
+            }
+        })
     }
 }

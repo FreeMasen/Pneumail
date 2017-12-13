@@ -83,8 +83,7 @@ namespace Pneumail.Controllers
                         {
                             var msgText = System.Text.Encoding.ASCII.GetString(buffer.Array.Take(result.Count).ToArray());
                             Console.WriteLine($"Websocket Message\n----------\n{msgText}");
-                            var fromClient = JsonConvert.DeserializeObject<UpdateFromClient>(msgText);
-                            await RespondToUpdate(fromClient);
+                            await RespondToUpdate(msgText);
 
                         }
                         result = await WebSocket.ReceiveAsync(buffer, CancellationToken.None);
@@ -98,25 +97,31 @@ namespace Pneumail.Controllers
             }
         }
 
-        public async Task RespondToUpdate(UpdateFromClient fromClient)
+        public async Task RespondToUpdate(string originalMsg)
         {
+            var firstComma = originalMsg.IndexOf(',');
+            var UpdateTypeStr = originalMsg.Substring(14, firstComma - 14).Replace("\"", "");
             var userId = _userManager.GetUserId(User);
             var userQuery = _data.Users.Where(u => u.Id == userId).AsQueryable();
             User user;
             UpdateMessage fromServer;
-            switch (fromClient.UpdateType) {
+            switch (UpdateTypeStr) {
                 case ClientUpdateType.UpdateService:
-                    ServiceUpdate update = (ServiceUpdate) fromClient;
-                    if (update.Service.Id != null) {
-                        _data.Update(update.Service);
-
-                    } else {
-                        _data.Add(update.Service);
-                    }
-                    await _data.SaveChangesAsync();
+                    ServiceUpdate update = JsonConvert.DeserializeObject<ServiceUpdate>(originalMsg);
                     user = await userQuery
                                     .Include(u => u.Services)
                                     .FirstAsync();
+                    if (update.Service.Id != Guid.Empty) {
+                        if (update.Delete) {
+                            _data.EmailServices.Remove(update.Service);
+                        } else {
+                            _data.Update(update.Service);
+                        }
+
+                    } else {
+                        user.Services.Add(update.Service);
+                    }
+                    await _data.SaveChangesAsync();
                     fromServer = new UpdateMessage() {
                         UpdateType = UpdateType.ServiceUpdateConfirmation,
                         Services = user.Services
@@ -125,8 +130,8 @@ namespace Pneumail.Controllers
                     await _mailService.GetMessages(update.Service);
                 break;
                 case ClientUpdateType.UpdateRule:
-                    var ruleUpdate = (RuleUpdate) fromClient;
-                    if (ruleUpdate.Rule.Id != null) {
+                    var ruleUpdate = JsonConvert.DeserializeObject<RuleUpdate>(originalMsg);
+                    if (ruleUpdate.Rule.Id != Guid.Empty) {
                         _data.Update(ruleUpdate.Rule);
                     } else {
                         _data.Add(ruleUpdate.Rule);
@@ -141,7 +146,7 @@ namespace Pneumail.Controllers
                     await SendUpdate(rulesReply);
                 break;
                 case ClientUpdateType.MarkMessageComplete:
-                    var completeUpdate = (MessageCompleteUpdate) fromClient;
+                    var completeUpdate = JsonConvert.DeserializeObject<MessageCompleteUpdate>(originalMsg);
                     var msg = await _data.Messages.Where(m => m.Id == completeUpdate.Id).FirstAsync();
                     msg.IsComplete = !msg.IsComplete;
                     _data.Update(msg);
@@ -158,7 +163,7 @@ namespace Pneumail.Controllers
                     await SendUpdate(fromServer);
                 break;
                 case ClientUpdateType.MarkMessageForLater:
-                    var delayUpdate = (MessageDelayUpdate) fromClient;
+                    var delayUpdate = JsonConvert.DeserializeObject<MessageDelayUpdate>(originalMsg);
                     var msgToDelay = await _data.Messages.Where(m => m.Id == delayUpdate.Id)
                                         .FirstAsync();
                     msgToDelay.IsDelayed = true;
@@ -177,7 +182,7 @@ namespace Pneumail.Controllers
                     await SendUpdate(fromServer);
                 break;
                 case ClientUpdateType.MoveMessageToCategory:
-                    var moveUpdate = (MoveMessageUpdate) fromClient;
+                    var moveUpdate = JsonConvert.DeserializeObject<MoveMessageUpdate>(originalMsg);
                     var msgToMove = await _data.Messages.Where(m => m.Id == moveUpdate.Id)
                                     .FirstAsync();
                     var oldCatId = msgToMove.CategoryId;

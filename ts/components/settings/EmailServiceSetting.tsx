@@ -26,7 +26,7 @@ export default class EmailServiceSetting extends React.Component<IEmailServiceSe
     }
     render() {
         return (
-        <div className={`${this.state.isError ? 'error ' : ''}email-service-container`}>
+        <div className={`${this.state.isError ? 'error ' : ''}email-service-container paper`}>
             <div className="email-service-input-container">
                 <div className="input-group">
                     <label htmlFor={`${this.props.service.id}-address")`} className="input-label">Address</label>
@@ -62,6 +62,7 @@ export default class EmailServiceSetting extends React.Component<IEmailServiceSe
                         onChange={value => this.password = value}
                         accentColor="rgb(231,209,43)"
                         textColor="#000"
+                        isPassword={true}
                     />
                 </div>
                 <div>
@@ -71,10 +72,11 @@ export default class EmailServiceSetting extends React.Component<IEmailServiceSe
                         onChange={value => this.confirm = value}
                         accentColor="rgb(231,209,43)"
                         textColor="#000"
+                        isPassword={true}
                     />
                 </div>
             </div>
-            <button onClick={ev => this.saveService(ev)} className="form-button">Save</button>
+            <button onClick={ev => this.saveService(ev)} className="form-button submit">Save</button>
         </div>
         );
     }

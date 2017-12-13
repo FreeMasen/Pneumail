@@ -24,10 +24,10 @@ export default class StorageService extends Dexie {
 
     public async storeUpdate(update): Promise<any> {
         if (update.updateType == 0) return;
-        if ((update.updateType | UpdateType.None ) > 0) {
+        if ((update.updateType & UpdateType.None ) > 0) {
 
         }
-        if ((update.updateType | UpdateType.Initial) > 0) {
+        if ((update.updateType & UpdateType.Initial) > 0) {
             await this.storeCategories(...update.categories)
             await this.cullCategories(...update.categories);
             await this.storeServices(...update.services);
@@ -35,13 +35,19 @@ export default class StorageService extends Dexie {
             await this.storeRules(...update.rules);
             return await this.cullRules(update.rules);
         }
-        if ((update.updateType | UpdateType.Insert) > 0) {
+        if ((update.updateType & UpdateType.Insert) > 0) {
 
         }
-        if ((update.updateType | UpdateType.Delete) > 0) {
+        if ((update.updateType & UpdateType.Delete) > 0) {
 
         }
-        if ((update.updateType | UpdateType.Modify) > 0) {
+        if ((update.updateType & UpdateType.Modify) > 0) {
+
+        }
+        if ((update.updateType & UpdateType.ServiceUpdateConfirmation) > 0) {
+
+        }
+        if ((update.updateType & UpdateType.RuleUpdateConfirmation) > 0) {
 
         }
     }
@@ -105,6 +111,7 @@ export default class StorageService extends Dexie {
     }
 
     public async storeServices(...services: Array<IEmailService>) {
+
         await this.services.bulkPut(services.map(s => {
             return {
                 id: s.id,
@@ -116,6 +123,9 @@ export default class StorageService extends Dexie {
     }
 
     public async cullServices(services: Array<IEmailService>) {
+        if (services.length == 0) {
+            return await this.services.clear()
+        }
         let ids = services.map(s => s.id);
         let toBeDeleted = await this.rules.filter(s => ids.indexOf(s.id) <= -1);
         let toBeDelIds = await toBeDeleted.keys();

@@ -105,4 +105,13 @@ export default class DataService {
             }
         );
     }
+
+    public sendRuleUpdate(rule: IRule) {
+        this.worker.postMessage(
+            {
+                event: 'update-rule',
+                rule: rule
+            }
+        )
+    }
 }

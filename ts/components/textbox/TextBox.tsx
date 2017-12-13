@@ -44,10 +44,12 @@ export default class TextBox extends React.Component<ITextBoxProps, ITextBoxStat
                             border: 'none',
                             fontSize: '14pt',
                             background: 'transparent',
-                            color: this.props.textColor || 'rgb(255,255,255)'
+                            color: this.props.textColor || 'rgb(255,255,255)',
+                            maxWidth: '100%',
                         }}
                         onFocus={(event) => this.toggleFocus(true)}
                         onBlur={(event) => this.toggleFocus(false)}
+                        value={this.state.value}
                     />
                     {(!this.props.iconPosition ||
                     this.props.iconPosition == IconPosition.Right) &&

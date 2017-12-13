@@ -23,7 +23,7 @@ namespace Pneumail.Models
         RuleUpdateConfirmation = 32,
     }
 
-    public abstract class UpdateFromClient
+    public class UpdateFromClient
     {
         public string UpdateType { get; set; }
     }

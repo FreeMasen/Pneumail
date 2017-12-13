@@ -36,14 +36,14 @@ export default class AppContainer extends React.Component<any, IAppState> {
             services: [],
         }
         this.db.listen((event: IUpdate) => this.updateState(event));
-        window.addEventListener('popstate', ev => {
-            console.log('window.popstate', ev);
-        });
-        // window.history.pushState({href: 'messages/incomplete'},'Pneumail - Incomplete', 'messages/incomplete');
+        window.addEventListener('popstate', ev => this.setState((prev, props) => {
+            return {
+                path: ev.state.href,
+            };
+        }));
     }
 
     updateState = (update: IUpdate) => {
-        console.log('updateState', update);
         switch (update.event) {
             case 'categories':
                 this.setState((prev, props) => {
@@ -70,7 +70,6 @@ export default class AppContainer extends React.Component<any, IAppState> {
     }
 
     navigationClicked(href: string) {
-        console.log('navigationClicked', href);
         if (location.href != href) {
             history.pushState({href: href}, '', href);
         }
@@ -95,6 +94,7 @@ export default class AppContainer extends React.Component<any, IAppState> {
                             Rules={this.state.rules}
                             EmailServices={this.state.services}
                             updateService={service => this.updateService(service)}
+                            updateRule={rule => this.updateRule(rule)}
                         />
         }
     }
@@ -113,28 +113,22 @@ export default class AppContainer extends React.Component<any, IAppState> {
     }
 
     componentWillMount() {
-        // console.log('appContainer', 'componentWillMount', this.state)
-        if (location.href == '') {
-            history.replaceState({href: 'messages/incomplete'}, 'Pneumail - incomplete', 'messages/incomplete')
+        if (location.pathname == '') {
+            history.replaceState({href: 'messages/incomplete'}, 'Pneumail - incomplete', 'messages/incomplete');
+            this.setState((prev, props) => {
+                return {
+                    path: 'messages/incomplete',
+                    component: this.switchMainContent('messages/incomplete')
+                }
+            })
         } else {
-            this.navigationClicked(location.href);
+            this.setState((prev, props) => {
+                return {
+                    path: location.pathname,
+                    component: this.switchMainContent(location.pathname)
+                }
+            });
         }
-    }
-    componentDidMount() {
-        // console.log('appContainer', 'componentDidMount', this.state)
-    }
-    componentWillReceiveProps(props) {
-        // console.log('appContainer', 'componentWillReceiveProps', props)
-    }
-
-    componentWillUpdate(props) {
-        // console.log('appContainer', 'componentWillUpdate', this.state)
-    }
-    componentDidUpdate() {
-        // console.log('appContainer', 'componentDidUpdate', this.state)
-    }
-    componentWillUnmount() {
-        // console.log('appContainer', 'componentWillUnmount', this.state)
     }
 
     render() {
@@ -156,7 +150,7 @@ export default class AppContainer extends React.Component<any, IAppState> {
                         elementClicked={href => this.navigationClicked(href)}
                     />
                     <div className={`main-container${this.state.sideBarState == SideBarState.Closed ? ' expanded' : ''}`}>
-                        {this.state.component}
+                        {this.switchMainContent(this.state.path)}
                     </div>
                 </div>
             </div>
@@ -181,5 +175,9 @@ export default class AppContainer extends React.Component<any, IAppState> {
 
     updateService = (service: IEmailService) => {
         this.db.sendServiceUpdate(service);
+    }
+
+    updateRule = (rule: IRule) => {
+        this.db.sendRuleUpdate(rule);
     }
 }
