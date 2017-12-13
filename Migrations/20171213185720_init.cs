@@ -180,15 +180,16 @@ namespace pneumail.Migrations
                     Address = table.Column<string>(type: "TEXT", nullable: true),
                     Password = table.Column<string>(type: "TEXT", nullable: true),
                     Port = table.Column<int>(type: "INTEGER", nullable: false),
-                    UserId = table.Column<string>(type: "TEXT", nullable: true),
+                    UserId = table.Column<Guid>(type: "BLOB", nullable: false),
+                    UserId1 = table.Column<string>(type: "TEXT", nullable: true),
                     Username = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_EmailService", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_EmailService_AspNetUsers_UserId",
-                        column: x => x.UserId,
+                        name: "FK_EmailService_AspNetUsers_UserId1",
+                        column: x => x.UserId1,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -215,11 +216,35 @@ namespace pneumail.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "EmailFolder",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "BLOB", nullable: false),
+                    Count = table.Column<int>(type: "INTEGER", nullable: false),
+                    EmailServiceId = table.Column<Guid>(type: "BLOB", nullable: true),
+                    LastModSequence = table.Column<int>(type: "INTEGER", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: true),
+                    UidNext = table.Column<uint>(type: "INTEGER", nullable: true),
+                    UidValidity = table.Column<uint>(type: "INTEGER", nullable: false),
+                    UnreadCount = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EmailFolder", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_EmailFolder_EmailService_EmailServiceId",
+                        column: x => x.EmailServiceId,
+                        principalTable: "EmailService",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Message",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "BLOB", nullable: false),
-                    CategoryId = table.Column<Guid>(type: "BLOB", nullable: true),
+                    CategoryId = table.Column<Guid>(type: "BLOB", nullable: false),
                     Content = table.Column<string>(type: "TEXT", nullable: true),
                     Date = table.Column<DateTime>(type: "TEXT", nullable: false),
                     IsComplete = table.Column<bool>(type: "INTEGER", nullable: false),
@@ -237,7 +262,7 @@ namespace pneumail.Migrations
                         column: x => x.CategoryId,
                         principalTable: "Category",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -359,9 +384,14 @@ namespace pneumail.Migrations
                 column: "MessageId2");
 
             migrationBuilder.CreateIndex(
-                name: "IX_EmailService_UserId",
+                name: "IX_EmailFolder_EmailServiceId",
+                table: "EmailFolder",
+                column: "EmailServiceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EmailService_UserId1",
                 table: "EmailService",
-                column: "UserId");
+                column: "UserId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Message_CategoryId",
@@ -424,13 +454,16 @@ namespace pneumail.Migrations
                 name: "Attachment");
 
             migrationBuilder.DropTable(
-                name: "EmailService");
+                name: "EmailFolder");
 
             migrationBuilder.DropTable(
                 name: "Rule");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
+                name: "EmailService");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

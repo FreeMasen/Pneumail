@@ -12,7 +12,7 @@ using System;
 namespace pneumail.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20171210222305_init")]
+    [Migration("20171213185720_init")]
     partial class init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -192,6 +192,32 @@ namespace pneumail.Migrations
                     b.ToTable("EmailAddress");
                 });
 
+            modelBuilder.Entity("Pneumail.Models.EmailFolder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<int>("Count");
+
+                    b.Property<Guid?>("EmailServiceId");
+
+                    b.Property<int>("LastModSequence");
+
+                    b.Property<string>("Name");
+
+                    b.Property<uint?>("UidNext");
+
+                    b.Property<uint>("UidValidity");
+
+                    b.Property<int>("UnreadCount");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmailServiceId");
+
+                    b.ToTable("EmailFolder");
+                });
+
             modelBuilder.Entity("Pneumail.Models.EmailService", b =>
                 {
                     b.Property<Guid>("Id")
@@ -203,13 +229,15 @@ namespace pneumail.Migrations
 
                     b.Property<int>("Port");
 
-                    b.Property<string>("UserId");
+                    b.Property<Guid>("UserId");
+
+                    b.Property<string>("UserId1");
 
                     b.Property<string>("Username");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId1");
 
                     b.ToTable("EmailService");
                 });
@@ -219,7 +247,7 @@ namespace pneumail.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<Guid?>("CategoryId");
+                    b.Property<Guid>("CategoryId");
 
                     b.Property<string>("Content");
 
@@ -388,18 +416,26 @@ namespace pneumail.Migrations
                         .HasForeignKey("MessageId2");
                 });
 
+            modelBuilder.Entity("Pneumail.Models.EmailFolder", b =>
+                {
+                    b.HasOne("Pneumail.Models.EmailService")
+                        .WithMany("Folders")
+                        .HasForeignKey("EmailServiceId");
+                });
+
             modelBuilder.Entity("Pneumail.Models.EmailService", b =>
                 {
                     b.HasOne("Pneumail.Models.User")
                         .WithMany("Services")
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId1");
                 });
 
             modelBuilder.Entity("Pneumail.Models.Message", b =>
                 {
                     b.HasOne("Pneumail.Models.Category")
                         .WithMany("Messages")
-                        .HasForeignKey("CategoryId");
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Pneumail.Models.EmailAddress", "Sender")
                         .WithMany()
