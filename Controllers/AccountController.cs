@@ -154,10 +154,7 @@ namespace Pneumail.Controllers
             };
             return await _userManager.CreateAsync(user, model.Password);
         }
-        private async void GetMessages(EmailService service)
-        {
-            await new IMAPService().GetMessages(service);
-        }
+
 #endregion
     }
 }

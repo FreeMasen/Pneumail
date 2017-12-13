@@ -7,6 +7,7 @@ using MailKit.Net.Imap;
 using MailKit.Security;
 using MailKit;
 using Pneumail.Models;
+using Pneumail.Data;
 
 namespace Pneumail.Services 
 {
@@ -18,9 +19,10 @@ namespace Pneumail.Services
     public class IMAPService: IIncomingEmailService
     {
         private static SortedSet<Guid> CurrentlyFetching = new SortedSet<Guid>();
-        public IMAPService()
+        private readonly ApplicationDbContext _data;
+        public IMAPService(ApplicationDbContext data)
         {
-
+            this._data = data;
         }
 
         private async Task<ImapClient> Connect(EmailService service) 
