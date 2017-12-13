@@ -23,11 +23,13 @@ export default class StorageService extends Dexie {
     }
 
     public async storeUpdate(update): Promise<any> {
+        console.log('StorageService->storeUpdate', update);
         if (update.updateType == 0) return;
         if ((update.updateType & UpdateType.None ) > 0) {
 
         }
         if ((update.updateType & UpdateType.Initial) > 0) {
+            console.log('Initial update, storing and culling');
             await this.storeCategories(...update.categories)
             await this.cullCategories(...update.categories);
             await this.storeServices(...update.services);

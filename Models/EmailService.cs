@@ -35,6 +35,7 @@ namespace Pneumail.Models
         /// The service's source folder information
         /// </summary>
         public List<EmailFolder> Folders { get; set; }
+        public Guid UserId { get; set; }
         public NetworkCredential Credentials() {
             return new NetworkCredential(Username, Password);
         }

@@ -1,5 +1,5 @@
 import StorageService from './storageService';
-import { UpdateType } from '../enums';
+import { UpdateType, DBWorkerState } from '../enums';
 type Listener = (update: IUpdate) => void;
 /**
  * Main data service provider. This class
@@ -70,29 +70,30 @@ export default class DataService {
     }
 
     private messageFromWorker(msg: any) {
-        // console.log('DataService.messageFromWorker(', msg, ')');
+        console.log('DataService.messageFromWorker', msg);
         switch (msg.event) {
-            case 'new-message':
+            case DBWorkerState.NewMessage:
                 this.newMessage(msg.updateType);
             break;
-            case 'ready':
+            case DBWorkerState.Ready:
                 // console.log('worker ready');
             break;
-            case 'not-ready':
+            case DBWorkerState.NotReady:
                 // console.log('worker not ready');
+            break;
+            case DBWorkerState.Error:
+
             break;
         }
     }
 
     private async newMessage(updateType: UpdateType) {
-        // console.log('DataService.newMessage(', updateType, ')');
+        console.log('DataService.newMessage', updateType);
         switch (updateType) {
             case UpdateType.Initial:
-                for (let listener of this.listeners) {
-                    this.sendCategories();
-                    this.sendServices();
-                    this.sendRules();
-                }
+                this.sendCategories();
+                this.sendServices();
+                this.sendRules();
             break;
         }
     }

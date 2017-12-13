@@ -65,6 +65,7 @@ namespace Pneumail.Controllers
                                             .Include(u => u.Rules)
                                             .Include(u => u.Services)
                                             .FirstOrDefaultAsync();
+                GetMessages(user.Services);
                 try {
                     var rawBuf = new byte[1024 * 4];
                     var buffer = new ArraySegment<byte>(rawBuf);
@@ -97,6 +98,19 @@ namespace Pneumail.Controllers
             }
         }
 
+        public async void GetMessages(List<EmailService> services) {
+            var id = _userManager.GetUserId(User);
+            var user = _data.CompleteUserQuery(id).First();
+            var incomplete = user.Categories.Where(c => c.Name.ToLower() == "incomplete").FirstOrDefault();
+
+            foreach (var service in services) 
+            {
+                var messages = await _mailService.GetMessages(service);
+                incomplete.Messages.AddRange(messages);
+            }
+            await _data.SaveChangesAsync();
+        }
+
         public async Task RespondToUpdate(string originalMsg)
         {
             var firstComma = originalMsg.IndexOf(',');
@@ -119,6 +133,7 @@ namespace Pneumail.Controllers
                         }
 
                     } else {
+                        update.Service.Folders = new List<EmailFolder>();
                         user.Services.Add(update.Service);
                     }
                     await _data.SaveChangesAsync();

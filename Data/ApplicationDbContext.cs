@@ -31,5 +31,26 @@ namespace Pneumail.Data
 
             });
         }
+
+        public IQueryable<User> CompleteUserQuery(string userId)
+        {
+            return this.Users.Where(u => u.Id == userId)
+                    .Include(u => u.Categories)
+                            .ThenInclude(c => c.Messages)
+                                .ThenInclude(m => m.Recipients)
+                        .Include(u => u.Categories)
+                            .ThenInclude(c => c.Messages)
+                                .ThenInclude(m => m.BlindCopied)
+                        .Include(u => u.Categories)
+                            .ThenInclude(c => c.Messages)
+                                .ThenInclude(m => m.Copied)
+                        .Include(u => u.Categories)
+                            .ThenInclude(c => c.Messages)
+                                .ThenInclude(m => m.Sender)
+                        .Include(u => u.Categories)
+                            .ThenInclude(c => c.Messages)
+                                .ThenInclude(m => m.Attachments)
+                        .AsQueryable();
+        }
     }
 }

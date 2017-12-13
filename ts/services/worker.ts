@@ -66,7 +66,7 @@ export class DBWorker {
             await this.db.storeUpdate(parsed);
             postMessage({
                 event: DBWorkerState.NewMessage,
-                updateType: parsed.UpdateType
+                updateType: parsed.updateType
             });
         } catch (e) {
             console.error('error in receive', e);
