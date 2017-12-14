@@ -47,10 +47,12 @@ export default class StorageService extends Dexie {
 
         }
         if ((update.updateType & UpdateType.ServiceUpdateConfirmation) > 0) {
-
+            this.storeServices(...update.services);
+            this.cullServices(update.services);
         }
         if ((update.updateType & UpdateType.RuleUpdateConfirmation) > 0) {
-
+            this.storeRules(...update.rules);
+            this.cullRules(update.rules);
         }
     }
 
