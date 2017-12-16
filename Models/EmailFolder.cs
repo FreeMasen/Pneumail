@@ -12,6 +12,9 @@ namespace Pneumail.Models
         public int UnreadCount { get; set; }
         public uint UidValidity { get; set; }
         public uint? UidNext { get; set; }
+
+        public Guid EmailServiceId { get; set; }
+        public EmailService EmailService { get; set; }
         public EmailFolder()
         {
 

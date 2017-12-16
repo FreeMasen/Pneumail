@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Text;
 
 namespace Pneumail.Models
 {
@@ -14,6 +16,7 @@ namespace Pneumail.Models
         /// The unique ID of this message
         /// </summary>
         public Guid Id { get; set; }
+        public int SourceId { get; set; }
         /// <summary>
         /// The sender's email address
         /// </summary>
@@ -62,9 +65,44 @@ namespace Pneumail.Models
         public bool IsDelayed { get; set; }
         public DateTime? Redelivery { get; set; }
         public Guid CategoryId { get; set; }
+        public Category Category { get; set; }
         public Message()
         {
 
+        }
+
+        public string ToJson()
+        {
+            var jb = new StringBuilder();
+            jb.Append("{");
+            jb.Append("\"id\":\"");
+            jb.Append(Id.ToString());
+            jb.Append("\",");
+            jb.Append("\"sourceId\":");
+            jb.Append(SourceId);
+            jb.Append(",\"sender\":\"");
+            jb.Append(Sender.ToString().Replace("\"", ""));
+            jb.Append("\",\"recipients\":[");
+
+            for (var i = 0; i < Recipients.Count();i++)
+            {
+                var r = Recipients[i];
+                jb.Append("\"");
+                jb.Append(r.ToString().Replace("\"", ""));
+                jb.Append("\"");
+                if (i < Recipients.Count() - 1)
+                    jb.Append(",");
+            }
+            jb.Append("],\"copied\":[],\"blindCopied\":[],\"subject\":\"");
+            jb.Append(Subject.Replace("\"", ""));
+            jb.Append("\",\"content\":\"");
+            jb.Append(Content.Replace("\n", "\\n").Replace("\"", ""));
+            jb.Append("\",\"isReply\":false,\"date\":\"");
+            jb.Append(Date.ToString());
+            jb.Append("\",\"isComplete\":false,\"isDelayed\":false,\"categoryId\":\"");
+            jb.Append(CategoryId.ToString());
+            jb.Append("\"}");
+            return jb.ToString();
         }
     }
 }

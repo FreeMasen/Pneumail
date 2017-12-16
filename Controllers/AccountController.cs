@@ -150,7 +150,9 @@ namespace Pneumail.Controllers
                         Messages = new List<Message>(),
                         Name = "Complete"
                     }
-                }
+                },
+                Rules = new List<Rule>(),
+                Services = new List<EmailService>(),
             };
             return await _userManager.CreateAsync(user, model.Password);
         }

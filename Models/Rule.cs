@@ -6,6 +6,8 @@ namespace Pneumail.Models
         public System.Guid Id { get; set; }
         public string SearchTerm { get; set; }
         public SearchLocation Location { get; set; }
+        public string UserId { get; set; }
+        public User User { get; set; }
         public Rule()
         {
 

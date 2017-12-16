@@ -3,6 +3,13 @@ import TextBox from '../textBox/TextBox';
 
 interface IEmailServiceSettingState {
     isError: boolean;
+    inboundAddress: string;
+    inboundPort: string;
+    outboundAddress: string;
+    outboundPort: string;
+    username: string;
+    password: string;
+    confirm: string;
 }
 
 interface IEmailServiceSettingProps {
@@ -12,36 +19,58 @@ interface IEmailServiceSettingProps {
 }
 
 export default class EmailServiceSetting extends React.Component<IEmailServiceSettingProps, IEmailServiceSettingState> {
-    private address: string;
-    private port: string;
-    private username: string;
-    private password: string;
-    private confirm: string;
+
 
     constructor(props) {
         super(props);
         this.state = {
             isError: false,
+            inboundAddress: props.service.inboundAddress,
+            outboundAddress: props.service.outboundAddress,
+            inboundPort: props.service.inboundPort,
+            outboundPort: props.service.outboundPort,
+            username: props.service.username || '',
+            password: props.service.password || '',
+            confirm: '',
         }
     }
+
     render() {
         return (
         <div className={`${this.state.isError ? 'error ' : ''}email-service-container paper`}>
             <div className="email-service-input-container">
                 <div className="input-group">
-                    <label htmlFor={`${this.props.service.id}-address")`} className="input-label">Address</label>
+                    <label htmlFor={`${this.props.service.id}-address")`} className="input-label">Inbound Address</label>
                     <TextBox
-                        initialValue={this.props.service.address}
-                        onChange={value => this.address = value }
+                        initialValue={this.props.service.inboundAddress}
+                        onChange={value => this.saveUpdate('inboundAddress', value) }
                         accentColor="rgb(231,209,43)"
                         textColor="#000"
                     />
                 </div>
                 <div className="input-group">
-                    <label htmlFor={`${this.props.service.id}-port")`} className="input-label">Port</label>
+                    <label htmlFor={`${this.props.service.id}-port")`} className="input-label">Inbound Port</label>
                     <TextBox
-                        initialValue={this.props.service.port.toString()}
-                        onChange={value => this.port = value}
+                        initialValue={this.props.service.inboundPort.toString()}
+                        onChange={value => this.saveUpdate('inboundPort', value)}
+                        accentColor="rgb(231,209,43)"
+                        textColor="#000"
+                    />
+                </div>
+                <div className="input-group">
+                    <label htmlFor={`${this.props.service.id}-address")`} className="input-label">Outbound Address</label>
+                    <TextBox
+                        initialValue={this.props.service.outboundAddress}
+                        onChange={value => this.saveUpdate('outboundAddress', value) }
+                        accentColor="rgb(231,209,43)"
+                        textColor="#000"
+                    />
+                </div>
+                <div className="input-group">
+                    <label htmlFor={`${this.props.service.id}-port")`} className="input-label">Outbound Port</label>
+                    <TextBox
+                        initialValue={this.props.service.outboundPort.toString()}
+                        onChange={value => this.saveUpdate('outboundPort', value)}
                         accentColor="rgb(231,209,43)"
                         textColor="#000"
                     />
@@ -50,7 +79,7 @@ export default class EmailServiceSetting extends React.Component<IEmailServiceSe
                     <label htmlFor={`${this.props.service.id}-username")`} className="input-label">Username</label>
                     <TextBox
                         initialValue={this.props.service.username}
-                        onChange={value => this.username = value}
+                        onChange={value => this.saveUpdate('username', value)}
                         accentColor="rgb(231,209,43)"
                         textColor="#000"
                     />
@@ -59,7 +88,7 @@ export default class EmailServiceSetting extends React.Component<IEmailServiceSe
                     <label htmlFor={`${this.props.service.id}-password")`} className="input-label">Password</label>
                     <TextBox
                         initialValue=""
-                        onChange={value => this.password = value}
+                        onChange={value => this.saveUpdate('password', value)}
                         accentColor="rgb(231,209,43)"
                         textColor="#000"
                         isPassword={true}
@@ -69,7 +98,7 @@ export default class EmailServiceSetting extends React.Component<IEmailServiceSe
                     <label htmlFor={`${this.props.service.id}-confirm-password`} className="input-label">Confirm Password</label>
                     <TextBox
                         initialValue=""
-                        onChange={value => this.confirm = value}
+                        onChange={value => this.saveUpdate('confirm', value)}
                         accentColor="rgb(231,209,43)"
                         textColor="#000"
                         isPassword={true}
@@ -81,25 +110,32 @@ export default class EmailServiceSetting extends React.Component<IEmailServiceSe
         );
     }
 
+    saveUpdate(key: string, value: string | number) {
+        this.setState((prev, props) => {
+            let ret = {} as any;
+            ret[key] = value;
+            return ret;
+        });
+    }
+
     saveService = (ev: React.MouseEvent<HTMLButtonElement>) => {
-        console.log('save', ev.currentTarget);
         let service = {} as IEmailService;
         service.id = this.props.service.id;
-        service.address = this.address;
+        service.inboundAddress = this.state.inboundAddress;
+        service.outboundAddress = this.state.outboundAddress;
         try {
-            service.port = parseInt(this.port);
-
+            service.inboundPort = parseInt(this.state.inboundPort);
+            service.outboundPort = parseInt(this.state.outboundPort);
         } catch (e) {
             this.updateError(true);
             return this.props.error(e.message);
         }
-        service.username = this.username;
-        if (this.password !== this.confirm) {
+        service.username = this.state.username;
+        if (this.state.password !== this.state.confirm) {
             this.updateError(true);
             return this.props.error('Passwords must match');
         }
-        service.password = this.password;
-        console.log('sending update to parent', service);
+        service.password = this.state.password;
         this.props.update(service);
         this.updateError(false);
     }

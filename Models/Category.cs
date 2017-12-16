@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-
+using System.Linq;
 namespace Pneumail.Models
 {
     /// <summary>
@@ -25,9 +25,34 @@ namespace Pneumail.Models
         /// </summary>
         /// <returns></returns>
         public List<Message> Messages { get; set; }
+
+        public string UserId { get; set; }
+        public User User { get; set; }
         public Category()
         {
 
+        }
+
+        public string ToJson()
+        {
+            var jb = new System.Text.StringBuilder();
+            jb.Append("{");
+            jb.Append("\"id:\"");
+            jb.Append(Id.ToString());
+            jb.Append("\",\"name\":\"");
+            jb.Append(Name);
+            jb.Append("\",\"messages\":[");
+            for (var i = 0; i < Messages.Count();i++)
+            {
+                var msg = Messages[i];
+                jb.Append(msg.ToJson());
+                if (i < Messages.Count() -1)
+                {
+                    jb.Append(",");
+                }
+            }
+            jb.Append("]}");
+            return jb.ToString();
         }
     }
 }

@@ -18,7 +18,8 @@ namespace Pneumail.Models
         /// <summary>
         /// The URL for the provider's STMP server
         /// </summary>
-        public string Address { get; set; }
+        public string InboundAddress { get; set; }
+        public string OutboundAddress { get; set; }
         /// <summary>
         /// The user's external username for this service
         /// </summary>
@@ -30,14 +31,31 @@ namespace Pneumail.Models
         /// <summary>
         /// The port to connect to the service provider
         /// </summary>
-        public int Port { get; set; }
+        public int InboundPort { get; set; }
+        public int OutboundPort { get; set; }
         /// <summary>
         /// The service's source folder information
         /// </summary>
         public List<EmailFolder> Folders { get; set; }
-        public Guid UserId { get; set; }
+        /// <summary>
+        /// Parent object, user
+        /// </summary>
+        public string UserId { get; set; }
         public NetworkCredential Credentials() {
             return new NetworkCredential(Username, Password);
+        }
+
+        public string ToJson()
+        {
+            return $@"{{
+                    ""id"": ""{Id}"",
+                    ""InboundAddress: ""{InboundAddress}"",
+                    ""OutboundAddress"": ""{OutboundAddress}"",
+                    ""Username"": ""{Username}"",
+                    ""Password"": ""{Password}"",
+                    ""InboundPort"": {InboundPort},
+                    ""OutboundPort"": {OutboundPort}
+                }}";
         }
     }
 }

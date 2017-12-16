@@ -28,8 +28,10 @@ interface IMessage {
 
 interface IEmailService {
     id?: string;
-    address: string;
-    port: number;
+    inboundAddress: string;
+    outboundAddress: string;
+    inboundPort: number;
+    outboundPort: number;
     username: string;
     password?: string;
     confirmPassword?: string;

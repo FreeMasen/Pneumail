@@ -91,6 +91,7 @@ export default class DataService {
         console.log('DataService.newMessage', updateType);
         switch (updateType) {
             case UpdateType.Initial:
+            case UpdateType.None:
                 this.sendCategories();
                 this.sendServices();
                 this.sendRules();

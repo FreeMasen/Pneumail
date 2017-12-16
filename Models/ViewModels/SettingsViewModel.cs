@@ -43,8 +43,8 @@ namespace Pneumail.ViewModels
         public EmailServiceViewModel(EmailService service)
         {
             Id = service.Id;
-            Address = service.Address;
-            Port = service.Port;
+            Address = service.InboundAddress;
+            Port = service.InboundPort;
             Username = service.Username;
             Password = service.Password;
         }

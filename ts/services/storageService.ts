@@ -18,22 +18,36 @@ export default class StorageService extends Dexie {
             messages: 'id, catId, sender, recipients, coppied, blindCopied, subject, content, previousId, isReply',
             attachments: 'id, msgId, name, path',
             rules: 'id, searchTerm, location',
-            services: 'id, address, port, username'
+            services: 'id, inboundAddress, inboundPort, outboundAddress, outboundPort, username'
         });
     }
 
     public async storeUpdate(update): Promise<any> {
         console.log('StorageService->storeUpdate', update);
-        if (update.updateType == 0) return;
         if ((update.updateType & UpdateType.None ) > 0) {
-
+            if (update.categories)
+            {
+                await this.storeCategories(update.categories);
+            }
+            if (update.messages)
+            {
+                await this.storeMessages(update.messages);
+            }
+            if (update.services)
+            {
+                await this.storeServices(update.services);
+            }
+            if (update.rules)
+            {
+                await this.storeRules(update.rules);
+            }
         }
         if ((update.updateType & UpdateType.Initial) > 0) {
             console.log('Initial update, storing and culling');
             await this.storeCategories(...update.categories)
-            await this.cullCategories(...update.categories);
+            // await this.cullCategories(...update.categories);
             await this.storeServices(...update.services);
-            await this.cullServices(update.services);
+            // await this.cullServices(update.services);
             await this.storeRules(...update.rules);
             return await this.cullRules(update.rules);
         }
@@ -63,30 +77,38 @@ export default class StorageService extends Dexie {
     }
 
     public async cullCategories(...categories: Array<ICategory>) {
-        for (let cat of categories) {
-            await this.cullMessages(...cat.messages);
-        }
         let ids = categories.map(c => c.id);
         let toBeDeleted = await this.categories.filter(c => ids.indexOf(c.id) <= -1);
         let toBeDelIds = await toBeDeleted.keys();
     }
 
-    private async cullMessages(...messages: Array<IMessage>) {
+    private async cullMessages(catId: string, messages: Array<IMessage>) {
+        console.log('cullMessages', messages);
         let ids = messages.map(m => m.id);
-        let toBeDeleted = await this.messages.filter(m => ids.indexOf(m.id) <= -1);
+        let toBeDeleted = await this.messages.filter(m => m.catId == catId && ids.indexOf(m.id) <= -1);
         let toBeDelIds = await toBeDeleted.keys();
+        console.log('deleteing',await toBeDeleted.count(), 'messages');
         await this.messages.bulkDelete(toBeDelIds);
+        console.log('after cullMessages', await this.messages.toArray());
     }
 
     private async storeCategory(category: ICategory) {
-        let msgs = category.messages.splice(0);
-        let attachments = msgs.reduce((acc, msg) => {
+        // console.log('storeCategory', category);
+        if (category.messages) {
+            let msgs = category.messages.splice(0);
+            await this.storeMessages(msgs);
+        }
+        await this.categories.put({id: category.id, name: category.name});
+    }
+
+    private async storeMessages(messages: Array<IMessage>) {
+        await this.messages.bulkPut(messages);
+        let attachments = messages.reduce((acc, msg) => {
             return acc.concat(msg.attachments.splice(0))
         }, [])
-        await this.categories.put({id: category.id, name: category.name});
-        await this.messages.bulkPut(msgs);
         await this.attachments.bulkPut(attachments);
     }
+
 
     public async getCategories(): Promise<Array<ICategory>> {
         let cats = await this.categories.toArray();
@@ -100,7 +122,8 @@ export default class StorageService extends Dexie {
     }
 
     public async storeRules(...rules: Array<IRule>) {
-        this.rules.bulkPut(rules);
+        await this.cullRules(rules)
+        await this.rules.bulkPut(rules);
     }
 
     public async cullRules(rules: Array<IRule>) {
@@ -115,12 +138,14 @@ export default class StorageService extends Dexie {
     }
 
     public async storeServices(...services: Array<IEmailService>) {
-
+        await this.cullServices(services);
         await this.services.bulkPut(services.map(s => {
             return {
                 id: s.id,
-                address: s.address,
-                port: s.port,
+                inboundAddress: s.inboundAddress,
+                outboundAddress: s.outboundAddress,
+                outboundPort: s.outboundPort,
+                inboundPort: s.inboundPort,
                 username: s.username
             };
         }));
@@ -137,6 +162,14 @@ export default class StorageService extends Dexie {
     }
 
     public async getServices() {
-        return this.services.toArray();
+        var ret = await this.services.toArray();
+        var included = {};
+        return ret.filter(s => {
+            if (!included[s.id]) {
+                included[s.id] = s;
+                return s
+            }
+            return false;
+        });
     }
 }

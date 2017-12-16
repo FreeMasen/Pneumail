@@ -35,9 +35,9 @@ export default class SideBar extends React.Component<ISideBarProps, ISideBarStat
                             {this.props.toggle || this.defaultToggle}
                         </div>
                     </div>
-                    {this.props.options.map(option =>
+                    {this.props.options.map((option, i) =>
                         <SideBarItem
-                            key={option.value}
+                            key={`side-bar-item-${i}`}
                             content={option.text}
                             href={option.value}
                             icon={option.icon}

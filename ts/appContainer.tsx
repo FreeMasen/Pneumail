@@ -44,6 +44,7 @@ export default class AppContainer extends React.Component<any, IAppState> {
     }
 
     updateState = (update: IUpdate) => {
+        console.log('appContainer->updateState', update);
         switch (update.event) {
             case 'categories':
                 this.setState((prev, props) => {
@@ -143,7 +144,7 @@ export default class AppContainer extends React.Component<any, IAppState> {
                         title="Collections"
                         options={
                             this.state.categories.map(c => {
-                                return new SideBarOption(c.name, `/messages/${c.name}`, Icons.letters(c.name.substring(0,2), `${c.name}-sidebar`))
+                                return new SideBarOption(c.name, `/messages/${c.name}`, Icons.letters(c.name.substring(0,1), `${c.name}-sidebar`))
                             }).concat([new SideBarOption('Settings', '/settings', Icons.letters('se', 'settings-sidebar'))])}
                         width={this.state.sideBarState}
                         toggleWidth={() => this.toggleSidebar()}

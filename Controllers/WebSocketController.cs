@@ -32,6 +32,7 @@ namespace Pneumail.Controllers
                                     IIncomingEmailService _mailService)
         {
             this._data = data;
+            this._data.Updated += this.Subscriber;
             this._userManager = userManager;
             this._mailService = (IMAPService)_mailService;
         }
@@ -44,40 +45,32 @@ namespace Pneumail.Controllers
             if (HttpContext.WebSockets.IsWebSocketRequest) {
                 WebSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
                 Console.WriteLine("Accepted Websocket");
-                var userId = _userManager.GetUserId(User);
-                Console.WriteLine($"Got UserId: {userId}");
-                var user = await _data.Users.Where(u => u.Id == userId)
-                                            .Include(u => u.Categories)
-                                                .ThenInclude(c => c.Messages)
-                                                    .ThenInclude(m => m.Recipients)
-                                            .Include(u => u.Categories)
-                                                .ThenInclude(c => c.Messages)
-                                                    .ThenInclude(m => m.BlindCopied)
-                                            .Include(u => u.Categories)
-                                                .ThenInclude(c => c.Messages)
-                                                    .ThenInclude(m => m.Copied)
-                                            .Include(u => u.Categories)
-                                                .ThenInclude(c => c.Messages)
-                                                    .ThenInclude(m => m.Sender)
-                                            .Include(u => u.Categories)
-                                                .ThenInclude(c => c.Messages)
-                                                    .ThenInclude(m => m.Attachments)
-                                            .Include(u => u.Rules)
-                                            .Include(u => u.Services)
-                                            .FirstOrDefaultAsync();
-                GetMessages(user.Services);
+                var user = await _userManager.GetUserAsync(User);
+                Console.WriteLine("Got User");
+                var categories  = _data.Categories
+                                                ?.Where(c => c.UserId == user.Id)
+                                                ?.ToList();
+                Console.WriteLine("Got categories");
+                var services = _data.EmailServices
+                                            ?.Where(s => s.UserId == user.Id)
+                                            ?.ToList();
+                Console.WriteLine("Got services");
+                var rules = _data.Rules
+                                    ?.Where(r => r.UserId == user.Id)
+                                    ?.ToList();
+                Console.WriteLine("Got rules");
                 try {
                     var rawBuf = new byte[1024 * 4];
                     var buffer = new ArraySegment<byte>(rawBuf);
                     var update = new UpdateMessage {
-                                        Categories = user.Categories,
+                                        Categories = categories,
                                         UpdateType = UpdateType.Initial,
-                                        Rules = user.Rules,
-                                        Services = user.Services
+                                        Rules = rules,
+                                        Services = services,
                                         };
                     await SendUpdate(update);
+                    GetMessages(user.Services);
                     var result = await WebSocket.ReceiveAsync(buffer, CancellationToken.None);
-                    Console.WriteLine($"Recieved initial message");
                     while (!result.CloseStatus.HasValue)
                     {
                         if (result.Count > 0)
@@ -85,7 +78,6 @@ namespace Pneumail.Controllers
                             var msgText = System.Text.Encoding.ASCII.GetString(buffer.Array.Take(result.Count).ToArray());
                             Console.WriteLine($"Websocket Message\n----------\n{msgText}");
                             await RespondToUpdate(msgText);
-
                         }
                         result = await WebSocket.ReceiveAsync(buffer, CancellationToken.None);
                     }
@@ -98,17 +90,24 @@ namespace Pneumail.Controllers
             }
         }
 
+        public async void Subscriber(object sender, PneumailDataEventArgs e)
+        {
+                var bytes = Encoding.ASCII.GetBytes(e.Update);
+                var seg = new ArraySegment<byte>(bytes);
+                await WebSocket.SendAsync(seg, WebSocketMessageType.Text,
+                                    true, CancellationToken.None);
+        }
+
+        public bool IsType<T>(Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry entity)
+        {
+            return entity.CurrentValues.EntityType.Name == typeof(T).FullName;
+        }
+
         public async void GetMessages(List<EmailService> services) {
             var id = _userManager.GetUserId(User);
-            var user = _data.CompleteUserQuery(id).First();
+            var user = _data.GetUser(id);
             var incomplete = user.Categories.Where(c => c.Name.ToLower() == "incomplete").FirstOrDefault();
-
-            foreach (var service in services) 
-            {
-                var messages = await _mailService.GetMessages(service);
-                incomplete.Messages.AddRange(messages);
-            }
-            await _data.SaveChangesAsync();
+            await _mailService.GetMessages(id);
         }
 
         public async Task RespondToUpdate(string originalMsg)
@@ -116,22 +115,20 @@ namespace Pneumail.Controllers
             var firstComma = originalMsg.IndexOf(',');
             var UpdateTypeStr = originalMsg.Substring(14, firstComma - 14).Replace("\"", "");
             var userId = _userManager.GetUserId(User);
-            var userQuery = _data.Users.Where(u => u.Id == userId).AsQueryable();
-            User user;
+            var user = GetUser(userId);
             UpdateMessage fromServer;
             switch (UpdateTypeStr) {
                 case ClientUpdateType.UpdateService:
-                    ServiceUpdate update = JsonConvert.DeserializeObject<ServiceUpdate>(originalMsg);
-                    user = await userQuery
-                                    .Include(u => u.Services)
-                                    .FirstAsync();
+                    ServiceUpdate update = JsonConvert
+                                            .DeserializeObject<ServiceUpdate>(originalMsg);
                     if (update.Service.Id != Guid.Empty) {
                         if (update.Delete) {
                             _data.EmailServices.Remove(update.Service);
                         } else {
-                            _data.Update(update.Service);
-                        }
+                            var dbService = _data.EmailServices.First(s => s.Id == update.Service.Id);
+                            dbService = update.Service;
 
+                        }
                     } else {
                         update.Service.Folders = new List<EmailFolder>();
                         user.Services.Add(update.Service);
@@ -142,7 +139,7 @@ namespace Pneumail.Controllers
                         Services = user.Services
                     };
                     await SendUpdate(fromServer);
-                    await _mailService.GetMessages(update.Service);
+                    await _mailService.GetMessages(userId);
                 break;
                 case ClientUpdateType.UpdateRule:
                     var ruleUpdate = JsonConvert.DeserializeObject<RuleUpdate>(originalMsg);
@@ -152,8 +149,6 @@ namespace Pneumail.Controllers
                         _data.Add(ruleUpdate.Rule);
                     }
                     await _data.SaveChangesAsync();
-                    user = await userQuery.Include(u => u.Rules)
-                                                .FirstAsync();
                     var rulesReply = new UpdateMessage() {
                         UpdateType = UpdateType.RuleUpdateConfirmation,
                         Rules = user.Rules,
@@ -220,12 +215,13 @@ namespace Pneumail.Controllers
         }
 
         public async Task SendUpdate(UpdateMessage updates) {
+            Console.WriteLine($"Sending updates {updates}");
             try {
 
-                var mappedCategories = updates.Categories != null ? updates.Categories.Select(c =>new {
+                var mappedCategories = updates.Categories != null ? updates.Categories.Select(c => new {
                     Id = c.Id,
                     Name = c.Name,
-                    Messages = c.Messages.Select(m => new {
+                    Messages = c.Messages != null ? c.Messages.Select(m => new {
                         Id = m.Id,
                         CatId = c.Id,
                         Sender = m.Sender.ToString(),
@@ -235,32 +231,60 @@ namespace Pneumail.Controllers
                         Subject = m.Subject,
                         Content = m.Content,
                         Attachments = m.Attachments.Select(a => new {Id = a.Id, name = a.Name, Path = a.Path, MsgId = m.Id}),
-                    })
+                    }) : null,
                 }) : null;
-                var mapped = JsonConvert.SerializeObject(
-                                                new {
-                                                    UpdateType = updates.UpdateType,
-                                                    Categories = mappedCategories,
-                                                    Rules = updates.Rules,
-                                                    Services = updates.Services
-                                                    },
-                                                Formatting.None,
-                                                new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
-
-                var msg = System.Text.Encoding.ASCII.GetBytes(mapped);
-
-                var bytes = new ArraySegment<byte>(msg, 0, msg.Count());
-
-                await WebSocket.SendAsync(bytes,
-                                            WebSocketMessageType.Text,
-                                            true, CancellationToken.None);
-                Console.WriteLine("Sent");
+                await this.SendMessage(
+                                new {
+                                    UpdateType = updates.UpdateType,
+                                    Categories = mappedCategories,
+                                    Rules = updates.Rules,
+                                    Services = updates.Services
+                                });
             }
             catch (Exception e) {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"Error: {e.Message}");
                 Console.ForegroundColor = ConsoleColor.White;
             }
+        }
+
+        public async Task SendMessage(object message)
+        {
+            var mapped = JsonConvert.SerializeObject(message,
+                                    Formatting.None,
+                                    new JsonSerializerSettings {
+                                        ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                                        ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                                    });
+            var msg = System.Text.Encoding.ASCII.GetBytes(mapped);
+            var bytes = new ArraySegment<byte>(msg, 0, msg.Count());
+            await WebSocket.SendAsync(bytes,
+                                    WebSocketMessageType.Text,
+                                    true, CancellationToken.None);
+        }
+
+        public User GetUser(string userId)
+        {
+            return _data.Users.Where(u => u.Id == userId)
+                    .Include(u => u.Categories)
+                            .ThenInclude(c => c.Messages)
+                                .ThenInclude(m => m.Recipients)
+                        .Include(u => u.Categories)
+                            .ThenInclude(c => c.Messages)
+                                .ThenInclude(m => m.BlindCopied)
+                        .Include(u => u.Categories)
+                            .ThenInclude(c => c.Messages)
+                                .ThenInclude(m => m.Copied)
+                        .Include(u => u.Categories)
+                            .ThenInclude(c => c.Messages)
+                                .ThenInclude(m => m.Sender)
+                        .Include(u => u.Categories)
+                            .ThenInclude(c => c.Messages)
+                                .ThenInclude(m => m.Attachments)
+                        .Include(u => u.Services)
+                            .ThenInclude(s => s.Folders)
+                        .Include(u => u.Rules)
+                        .First();
         }
 
         private IQueryable<User> CompleteUserQuery(IQueryable<User> userQuery)

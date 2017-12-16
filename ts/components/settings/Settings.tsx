@@ -98,8 +98,10 @@ export default class Settings extends React.Component<ISettingsProps, ISettingsS
         this.setState((prev, props) => {
             return {
                 pendingNewService: {
-                    address: '',
-                    port: 0,
+                    inboundAddress: '',
+                    inboundPort: 0,
+                    outboundAddress: '',
+                    outboundPort: 0,
                     username: '',
                     password: ''
                 }

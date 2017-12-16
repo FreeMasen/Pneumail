@@ -69,6 +69,7 @@ export class DBWorker {
                 updateType: parsed.updateType
             });
         } catch (e) {
+            console.error(event.data);
             console.error('error in receive', e);
         }
     }
@@ -82,7 +83,7 @@ export class DBWorker {
             event: DBWorkerState.Error,
         });
         if (this.sock.readyState == WebSocket.CLOSED) {
-            this.startListening();
+            // this.startListening();
         }
     }
 
@@ -96,6 +97,6 @@ export class DBWorker {
         postMessage({
             event: DBWorkerState.NotReady
         });
-        this.startListening();
+        // this.startListening();
     }
 }
